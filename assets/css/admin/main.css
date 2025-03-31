@@ -1,0 +1,218 @@
+:root {
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 80px;
+    --topbar-height: 60px;
+    --primary-color:rgb(79, 136, 235);;
+    --secondary-color: #f8f9fc;
+    --transition-speed: 0.3s;
+}
+
+body {
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fc;
+    overflow-x: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+body.loaded {
+    opacity: 1;
+}
+
+#wrapper {
+    display: flex;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, #1a5276 0%, #154360 100%);
+    transition: all var(--transition-speed) ease;
+    z-index: 1000;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    overflow-y: auto;
+}
+
+#sidebar-wrapper.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 1.2rem 1rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    transition: all var(--transition-speed) ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: var(--topbar-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#sidebar-wrapper.collapsed .sidebar-heading {
+    font-size: 0;
+    padding: 1.2rem 0;
+}
+
+#sidebar-wrapper.collapsed .sidebar-heading::before {
+    content: "MA";
+    font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group {
+    width: 100%;
+    padding: 1rem 0;
+}
+
+#sidebar-wrapper .list-group-item {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.8rem 1.5rem;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0.25rem;
+}
+
+#sidebar-wrapper .list-group-item:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background-color: white;
+    transform: translateX(-4px);
+    transition: transform 0.2s;
+}
+
+#sidebar-wrapper .list-group-item:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#sidebar-wrapper .list-group-item:hover:before {
+    transform: translateX(0);
+}
+
+#sidebar-wrapper .list-group-item.active {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+}
+
+#sidebar-wrapper .list-group-item.active:before {
+    transform: translateX(0);
+}
+
+#sidebar-wrapper .list-group-item i {
+    margin-right: 1rem;
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+    transition: all var(--transition-speed);
+}
+
+#sidebar-wrapper.collapsed .list-group-item i {
+    margin-right: 0;
+    font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group-item span {
+    transition: opacity var(--transition-speed);
+    white-space: nowrap;
+}
+
+#sidebar-wrapper.collapsed .list-group-item span {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+#content-wrapper {
+    flex: 1;
+    min-width: 0;
+    background-color: #f8f9fc;
+    transition: margin-left var(--transition-speed);
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+}
+
+#content-wrapper.collapsed {
+    margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+.topbar {
+    height: var(--topbar-height);
+    background-color: white;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.topbar .toggle-sidebar {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #4e73df;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.topbar .toggle-sidebar:hover {
+    transform: scale(1.1);
+}
+
+.topbar-divider {
+    width: 0;
+    border-right: 1px solid #e3e6f0;
+    height: calc(var(--topbar-height) - 2rem);
+    margin: auto 1rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.user-info .user-name {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-right: 0.5rem;
+}
+
+.user-info .user-role {
+    font-size: 0.8rem;
+    color: #858796;
+    background-color: #eaecf4;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.content {
+    padding: 1.5rem;
+}
+
+.page-title {
+    margin-bottom: 1.5rem;
+    color: #5a5c69;
+    font-weight: 700;
+    font-size: 1.75rem;
+}
