@@ -8,9 +8,32 @@ if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "admin") {
 
 $username = $_SESSION["username"];
 
+// Periksa apakah tabel tugas sudah ada
+$table_exists_query = "SHOW TABLES LIKE 'tugas'";
+$table_exists_result = mysqli_query($conn, $table_exists_query);
+$table_exists = mysqli_num_rows($table_exists_result) > 0;
+
 // Query untuk mendapatkan daftar anggota
-$query_anggota = "SELECT username FROM users WHERE role = 'anggota'";
+if ($table_exists) {
+    // Jika tabel tugas ada, ambil data dengan jumlah tugas
+    $query_anggota = "SELECT u.username, COUNT(t.id) as jumlah_tugas 
+                     FROM users u 
+                     LEFT JOIN tugas t ON u.username = t.penanggung_jawab AND t.status != 'Selesai'
+                     WHERE u.role = 'anggota' 
+                     GROUP BY u.username
+                     ORDER BY jumlah_tugas ASC";
+} else {
+    // Jika tabel tugas belum ada, ambil hanya username
+    $query_anggota = "SELECT username, 0 as jumlah_tugas FROM users WHERE role = 'anggota'";
+}
+
 $anggota_list_result = mysqli_query($conn, $query_anggota);
+
+// Jika query gagal, gunakan query sederhana sebagai fallback
+if (!$anggota_list_result) {
+    $query_anggota_fallback = "SELECT username FROM users WHERE role = 'anggota'";
+    $anggota_list_result = mysqli_query($conn, $query_anggota_fallback);
+}
 ?>
 
 <!DOCTYPE html>
@@ -31,6 +54,7 @@ $anggota_list_result = mysqli_query($conn, $query_anggota);
     
     <!-- Custom CSS -->
     <style>
+        /* CSS tetap sama seperti sebelumnya */
         :root {
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
@@ -394,6 +418,18 @@ $anggota_list_result = mysqli_query($conn, $query_anggota);
             background-color: transparent;
             border-bottom: 3px solid #4e73df;
         }
+        
+        /* Styling untuk badge jumlah tugas */
+        .task-count {
+            display: inline-block;
+            background-color: #f8f9fc;
+            color: #4e73df;
+            border-radius: 10px;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 
@@ -443,7 +479,7 @@ $anggota_list_result = mysqli_query($conn, $query_anggota);
                             <span class="d-none d-sm-inline"><?php echo $username; ?></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="../modules/profil.php"><i class="bi bi-person me-2"></i>Profil</a></li>
+                            <li><a class="dropdown-item" href="../modules/profil.php"><i class="bi bi-person me-2"></i>Profil</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="../auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a></li>
                         </ul>
@@ -471,7 +507,7 @@ $anggota_list_result = mysqli_query($conn, $query_anggota);
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">
-                                        <i class="bi bi-card-list me-1"></i> Detail Tambahan
+                                        <i class="bi bi-calendar-date me-1"></i> Jadwal
                                     </button>
                                 </li>
                             </ul>
@@ -509,9 +545,16 @@ $anggota_list_result = mysqli_query($conn, $query_anggota);
                                                     <?php 
                                                     mysqli_data_seek($anggota_list_result, 0);
                                                     while($row = mysqli_fetch_assoc($anggota_list_result)):
+                                                        // Jika tabel tugas ada, tampilkan jumlah tugas
+                                                        if ($table_exists && isset($row['jumlah_tugas'])) {
+                                                            $jumlah_tugas = intval($row['jumlah_tugas']);
+                                                            $task_info = " <span class='task-count'>{$jumlah_tugas} tugas</span>";
+                                                        } else {
+                                                            $task_info = "";
+                                                        }
                                                     ?>
                                                         <option value="<?php echo htmlspecialchars($row['username']); ?>">
-                                                            <?php echo htmlspecialchars($row['username']); ?>
+                                                            <?php echo htmlspecialchars($row['username']) . $task_info; ?>
                                                         </option>
                                                     <?php endwhile; ?>
                                                 </select>
@@ -532,7 +575,7 @@ $anggota_list_result = mysqli_query($conn, $query_anggota);
                                         </div>
                                     </div>
 
-                                    <!-- Tab 2: Detail Tambahan -->
+                                    <!-- Tab 2: Detail Tambahan (Jadwal) -->
                                     <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
                                         <div class="row g-3">
                                             <div class="col-md-6">
@@ -543,11 +586,9 @@ $anggota_list_result = mysqli_query($conn, $query_anggota);
                                                 <label for="deadline" class="form-label">Deadline</label>
                                                 <input type="date" class="form-control" id="deadline" name="deadline" required>
                                             </div>
-                                            <div class="col-md-12">
-                                                <label for="link_drive" class="form-label">Link Drive</label>
-                                                <input type="text" class="form-control" id="link_drive" name="link_drive" placeholder="Masukkan link Google Drive">
-                                            </div>
+                                            <!-- Field link_drive dihapus karena akan diisi oleh anggota -->
                                             <input type="hidden" name="pemberi_tugas" value="<?php echo $username; ?>">
+                                            <input type="hidden" name="link_drive" value=""> <!-- Tetap kirim nilai kosong -->
                                             <div class="col-12 d-flex mt-3">
                                                 <button type="button" class="btn btn-secondary prev-tab me-2">
                                                     <i class="bi bi-arrow-left me-1"></i> Kembali
