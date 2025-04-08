@@ -96,29 +96,29 @@ if ($stats_anggota['total_tugas'] > 0) {
 }
 
 // Statistik: Anggota dengan tugas terbanyak
-$anggota_query = "SELECT penanggung_jawab, COUNT(*) as jumlah_tugas 
-                 FROM tugas_media 
-                 WHERE pemberi_tugas = 'admin'
-                 GROUP BY penanggung_jawab 
-                 ORDER BY jumlah_tugas DESC 
-                 LIMIT 5";
+$anggota_query = "SELECT penanggung_jawab, COUNT(*) as jumlah_tugas
+                  FROM tugas_media
+                  WHERE pemberi_tugas = 'admin'
+                  GROUP BY penanggung_jawab
+                  ORDER BY jumlah_tugas DESC
+                  LIMIT 5";
 $anggota_result = mysqli_query($conn, $anggota_query);
 
 // Statistik: Platform terbanyak
-$platform_query = "SELECT platform, COUNT(*) as jumlah 
-                  FROM tugas_media 
-                  GROUP BY platform 
-                  ORDER BY jumlah DESC 
-                  LIMIT 3";
+$platform_query = "SELECT platform, COUNT(*) as jumlah
+                   FROM tugas_media
+                   GROUP BY platform
+                   ORDER BY jumlah DESC
+                   LIMIT 3";
 $platform_result = mysqli_query($conn, $platform_query);
 
 // Statistik: Tugas yang sering overdue
-$overdue_detail_query = "SELECT id, judul, penanggung_jawab, deadline, DATEDIFF(CURDATE(), deadline) as hari_terlambat 
-                        FROM tugas_media 
-                        WHERE deadline < CURDATE() 
-                        AND status != 'Selesai'
-                        ORDER BY hari_terlambat DESC 
-                        LIMIT 5";
+$overdue_detail_query = "SELECT id, judul, penanggung_jawab, deadline, DATEDIFF(CURDATE(), deadline) as hari_terlambat
+                         FROM tugas_media
+                         WHERE deadline < CURDATE()
+                         AND status != 'Selesai'
+                         ORDER BY hari_terlambat DESC
+                         LIMIT 5";
 $overdue_detail_result = mysqli_query($conn, $overdue_detail_query);
 
 // Mendapatkan daftar semua anggota untuk filter
@@ -196,7 +196,6 @@ $nama_bulan = [
     '9' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
 ];
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,571 +209,846 @@ $nama_bulan = [
     <!-- Animate.css untuk animasi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/admin/main.css">
-    <link rel="stylesheet" href="../assets/css/admin/admin_dashboard.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --topbar-height: 60px;
+            --primary-color:rgb(79, 136, 235);;
+            --secondary-color: #f8f9fc;
+            --transition-speed: 0.3s;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+            overflow-x: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        body.loaded {
+            opacity: 1;
+        }
+        
+        #wrapper {
+            display: flex;
+        }
+        
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1a5276 0%, #154360 100%);
+            transition: all var(--transition-speed) ease;
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        #sidebar-wrapper.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+        
+        #sidebar-wrapper .sidebar-heading {
+            padding: 1.2rem 1rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            transition: all var(--transition-speed) ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--topbar-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #sidebar-wrapper.collapsed .sidebar-heading {
+            font-size: 0;
+            padding: 1.2rem 0;
+        }
+        
+        #sidebar-wrapper.collapsed .sidebar-heading::before {
+            content: "MA";
+            font-size: 1.2rem;
+        }
+        
+        #sidebar-wrapper .list-group {
+            width: 100%;
+            padding: 1rem 0;
+        }
+        
+        #sidebar-wrapper .list-group-item {
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.8rem 1.5rem;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+        
+        #sidebar-wrapper .list-group-item:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: white;
+            transform: translateX(-4px);
+            transition: transform 0.2s;
+        }
+        
+        #sidebar-wrapper .list-group-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        #sidebar-wrapper .list-group-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        #sidebar-wrapper .list-group-item.active:before {
+            transform: translateX(0);
+        }
+        
+        #sidebar-wrapper .list-group-item i {
+            margin-right: 1rem;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: margin var(--transition-speed);
+        }
+        
+        #sidebar-wrapper.collapsed .list-group-item span {
+            display: none;
+        }
+        
+        #sidebar-wrapper.collapsed .list-group-item i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+        
+        #page-content-wrapper {
+            width: 100%;
+            margin-left: var(--sidebar-width);
+            transition: margin var(--transition-speed) ease;
+        }
+        
+        #wrapper.toggled #page-content-wrapper {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+        /* CSS tambahan untuk responsivitas */
+/* Overlay untuk mobile */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+    transition: all 0.3s;
+}
+
+.sidebar-overlay.show {
+    display: block;
+}
+
+/* Mobile sidebar behavior */
+@media (max-width: 767.98px) {
+    #sidebar-wrapper {
+        transform: translateX(-100%);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px !important;
+        height: 100%;
+        z-index: 1000;
+        transition: transform 0.3s ease;
+    }
+    
+    #sidebar-wrapper.show {
+        transform: translateX(0);
+    }
+    
+    #page-content-wrapper {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .row {
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
+    }
+    
+    .col-xl-3, .col-xl-4, .col-xl-6, .col-xl-8, .col-md-6 {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+}
+
+/* Desktop sidebar behavior */
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        transform: translateX(0);
+    }
+    
+    #sidebar-wrapper.collapsed {
+        width: var(--sidebar-collapsed-width);
+    }
+    
+    #page-content-wrapper {
+        margin-left: var(--sidebar-width);
+        transition: margin var(--transition-speed) ease;
+    }
+    
+    #page-content-wrapper.expanded {
+        margin-left: var(--sidebar-collapsed-width);
+    }
+}
+
+        
+        .topbar {
+            height: var(--topbar-height);
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        .content {
+            padding: 1.5rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+        
+        .stat-card {
+            border-left: 4px solid;
+            border-radius: 8px;
+        }
+        
+        .stat-card.primary {
+            border-left-color: #4e73df;
+        }
+        
+        .stat-card.success {
+            border-left-color: #1cc88a;
+        }
+        
+        .stat-card.warning {
+            border-left-color: #f6c23e;
+        }
+        
+        .stat-card.danger {
+            border-left-color: #e74a3b;
+        }
+        
+        .stat-card .card-body {
+            padding: 1.25rem;
+        }
+        
+        .stat-card .stat-title {
+            text-transform: uppercase;
+            color: #4e73df;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-card .stat-value {
+            color: #5a5c69;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            opacity: 0.3;
+        }
+        
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+        
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table thead th {
+            border-top: none;
+            background-color: #f8f9fc;
+            color: #6e707e;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        .badge {
+            font-weight: 600;
+            padding: 0.35em 0.65em;
+        }
+        
+        .badge-primary {
+            background-color: #4e73df;
+        }
+        
+        .badge-success {
+            background-color: #1cc88a;
+        }
+        
+        .badge-warning {
+            background-color: #f6c23e;
+        }
+        
+        .badge-danger {
+            background-color: #e74a3b;
+        }
+        
+        .badge-info {
+            background-color: #36b9cc;
+        }
+        
+        .badge-secondary {
+            background-color: #858796;
+        }
+        
+        .btn-circle {
+            border-radius: 100%;
+            height: 2.5rem;
+            width: 2.5rem;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-circle.btn-sm {
+            height: 1.8rem;
+            width: 1.8rem;
+            font-size: 0.75rem;
+        }
+        
+        .btn-icon-split {
+            display: inline-flex;
+            align-items: stretch;
+            overflow: hidden;
+        }
+        
+        .btn-icon-split .icon {
+            background: rgba(0, 0, 0, 0.15);
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+        }
+        
+        .btn-icon-split .text {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+        }
+        
+        .filter-form .form-group {
+            margin-bottom: 0;
+        }
+        
+        /* Tambahan CSS untuk chart container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+            
+            #sidebar-wrapper {
+                width: 0;
+                overflow: hidden;
+            }
+            
+            #sidebar-wrapper.collapsed {
+                width: var(--sidebar-width);
+            }
+            
+            #page-content-wrapper {
+                margin-left: 0;
+            }
+            
+            #wrapper.toggled #page-content-wrapper {
+                margin-left: 0;
+            }
+            
+            .topbar {
+                padding: 0 1rem;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div id="wrapper">
         <!-- Sidebar -->
-        <div id="sidebar-wrapper">
-            <div class="sidebar-heading">Media Admin</div>
-            <div class="list-group">
-                <a href="#" class="list-group-item active">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="../modules/tambah_tugas_anggota.php" class="list-group-item">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Tambah Tugas</span>
-                </a>
-                <a href="../views/tugas_anggota.php" class="list-group-item">
-                    <i class="bi bi-list-task"></i>
-                    <span>Daftar Tugas</span>
-                </a>
-                <a href="../views/tugas_kabid.php" class="list-group-item">
-                    <i class="bi bi-briefcase"></i>
-                    <span>Tugas dari Kabid</span>
-                </a>
-                <a href="../views/laporan.php" class="list-group-item">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span>Laporan</span>
-                </a>
-                <a href="../views/profil.php" class="list-group-item">
-                    <i class="bi bi-person"></i>
-                    <span>Profil</span>
-                </a>
-                <a href="../auth/logout.php" class="list-group-item">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </div>
-        
-        <!-- Content Wrapper -->
-        <div id="content-wrapper">
-            <!-- Topbar -->
+<div id="sidebar-wrapper">
+    <div class="sidebar-heading">Media Admin</div>
+    <div class="list-group">
+        <a href="admin_dashboard.php" class="list-group-item active">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="../modules/daftar_tugas_admin.php" class="list-group-item">
+            <i class="bi bi-list-task"></i>
+            <span>Daftar Tugas</span>
+        </a>
+        <a href="../modules/tambah_tugas_anggota.php" class="list-group-item">
+            <i class="bi bi-plus-circle"></i>
+            <span>Tambah Tugas</span>
+        </a>
+        <a href="../modules/kelola_akun.php" class="list-group-item">
+            <i class="bi bi-people"></i> <!-- Ikon yang lebih sesuai untuk kelola akun -->
+            <span>Kelola Akun Anggota</span>
+        </a>
+        <a href="../modules/laporan.php" class="list-group-item">
+            <i class="bi bi-key"></i> <!-- Ikon yang lebih sesuai untuk ganti password -->
+            <span>Ganti Password</span>
+        </a>
+        <a href="../auth/logout.php" class="list-group-item">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Keluar</span>
+        </a>
+    </div>
+</div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
             <div class="topbar">
-                <button id="sidebarToggle" class="toggle-sidebar">
+                <button class="btn btn-link" id="menu-toggle">
                     <i class="bi bi-list"></i>
                 </button>
-                
-                <div class="topbar-divider"></div>
-                
-                <div class="d-flex align-items-center">
-                    <a href="?export=csv" class="btn btn-sm btn-success me-2">
-                        <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
-                    </a>
-                </div>
-                
-                <div class="user-info">
-                    <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
-                    <span class="user-role badge bg-primary">Admin</span>
+                <div class="ms-auto d-flex align-items-center">
+                    <div class="dropdown">
+                        <a class="dropdown-toggle text-decoration-none text-dark" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span><?php echo $username; ?></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="profil.php"><i class="bi bi-person me-2"></i>Profil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="../auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Main Content -->
+
             <div class="content">
-                <h1 class="page-title fade-in">Dashboard Admin</h1>
-                
-                <!-- Statistik Utama -->
-                <div class="row fade-in">
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card primary h-100">
-                            <div class="card-body">
-                                <div class="card-title">Total Tugas</div>
-                                <div class="card-value"><?php echo $stats_anggota['total_tugas']; ?></div>
-                                <i class="bi bi-clipboard-check card-icon"></i>
-                            </div>
-                        </div>
-                    </div>
+                <div class="container-fluid">
+                    <h1 class="h3 mb-4 text-gray-800">Dashboard Admin</h1>
                     
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card success h-100">
-                            <div class="card-body">
-                                <div class="card-title">Tugas Selesai</div>
-                                <div class="card-value"><?php echo $stats_anggota['selesai']; ?></div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $completion_percentage_anggota; ?>%" aria-valuenow="<?php echo $completion_percentage_anggota; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                    <!-- Filter Form -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="bi bi-funnel me-1"></i> Filter Data
+                        </div>
+                        <div class="card-body">
+                            <form method="get" action="" class="row g-3 filter-form">
+                                <div class="col-md-3">
+                                    <label for="bulan" class="form-label">Bulan</label>
+                                    <select class="form-select" id="bulan" name="bulan">
+                                        <option value="">Semua Bulan</option>
+                                        <?php foreach ($nama_bulan as $key => $value): ?>
+                                            <option value="<?php echo $key; ?>" <?php echo ($bulan == $key) ? 'selected' : ''; ?>>
+                                                <?php echo $value; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
-                                <div class="small mt-1"><?php echo $completion_percentage_anggota; ?>% selesai</div>
-                                <i class="bi bi-check-circle card-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card warning h-100">
-                            <div class="card-body">
-                                <div class="card-title">Deadline Dekat</div>
-                                <div class="card-value"><?php echo $upcoming; ?></div>
-                                <div class="small mt-1">Dalam 3 hari ke depan</div>
-                                <i class="bi bi-clock-history card-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card danger h-100">
-                            <div class="card-body">
-                                <div class="card-title">Tugas Terlambat</div>
-                                <div class="card-value"><?php echo $overdue; ?></div>
-                                <div class="small mt-1">Melewati deadline</div>
-                                <i class="bi bi-exclamation-triangle card-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Filter Form -->
-                <div class="card mb-4 fade-in">
-                    <div class="card-header">
-                        <h6><i class="bi bi-funnel me-1"></i> Filter Tugas</h6>
-                    </div>
-                    <div class="card-body">
-                        <form method="GET" action="" class="row g-3">
-                            <div class="col-md-3">
-                                <label for="bulan" class="form-label">Bulan</label>
-                                <select class="form-select" id="bulan" name="bulan">
-                                    <option value="">Semua Bulan</option>
-                                    <?php foreach ($nama_bulan as $key => $value): ?>
-                                        <option value="<?php echo $key; ?>" <?php echo $bulan == $key ? 'selected' : ''; ?>>
-                                            <?php echo $value; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="tahun" class="form-label">Tahun</label>
-                                <select class="form-select" id="tahun" name="tahun">
-                                    <?php for ($y = date('Y'); $y >= date('Y') - 5; $y--): ?>
-                                        <option value="<?php echo $y; ?>" <?php echo $tahun == $y ? 'selected' : ''; ?>>
-                                            <?php echo $y; ?>
-                                        </option>
-                                    <?php endfor; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status">
-                                    <option value="">Semua Status</option>
-                                    <option value="Belum Dikerjakan" <?php echo $status == 'Belum Dikerjakan' ? 'selected' : ''; ?>>Belum Dikerjakan</option>
-                                    <option value="Sedang Dikerjakan" <?php echo $status == 'Sedang Dikerjakan' ? 'selected' : ''; ?>>Sedang Dikerjakan</option>
-                                    <option value="Kirim" <?php echo $status == 'Kirim' ? 'selected' : ''; ?>>Kirim</option>
-                                    <option value="Revisi" <?php echo $status == 'Revisi' ? 'selected' : ''; ?>>Revisi</option>
-                                    <option value="Selesai" <?php echo $status == 'Selesai' ? 'selected' : ''; ?>>Selesai</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="anggota" class="form-label">Anggota</label>
-                                <select class="form-select" id="anggota" name="anggota">
-                                    <option value="">Semua Anggota</option>
-                                    <?php 
-                                    // Reset pointer hasil query
-                                    mysqli_data_seek($anggota_list_result, 0);
-                                    while ($row = mysqli_fetch_assoc($anggota_list_result)): 
-                                    ?>
-                                        <option value="<?php echo $row['username']; ?>" <?php echo $anggota == $row['username'] ? 'selected' : ''; ?>>
-                                            <?php echo $row['username']; ?>
-                                        </option>
-                                    <?php endwhile; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-1 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">Filter</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- Tugas dari Kabid -->
-                <div class="card mb-4 fade-in">
-                    <div class="card-header">
-                        <h6><i class="bi bi-briefcase me-1"></i> Tugas dari Kepala Bidang</h6>
-                        <div class="card-tools">
-                            <span class="badge bg-primary"><?php echo mysqli_num_rows($result_kabid); ?> tugas</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Judul</th>
-                                        <th>Platform</th>
-                                        <th>Deskripsi</th>
-                                        <th>Status</th>
-                                        <th>Tanggal Mulai</th>
-                                        <th>Deadline</th>
-                                        <th>Link Drive</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if(mysqli_num_rows($result_kabid) > 0): ?>
-                                        <?php while ($row = mysqli_fetch_assoc($result_kabid)): ?>
-                                            <?php
-                                                $deadline_date = isset($row['deadline']) ? new DateTime($row['deadline']) : null;
-                                                $today = new DateTime();
-                                                $deadline_class = '';
-                                                $deadline_text = isset($row['deadline']) ? date('d-m-Y', strtotime($row['deadline'])) : 'Tidak ada deadline';
-                                                
-                                                if ($deadline_date) {
-                                                    $interval = $today->diff($deadline_date);
-                                                    $days_remaining = $interval->days;
-                                                    
-                                                    if ($today > $deadline_date && $row['status'] != 'Selesai') {
-                                                        $deadline_class = 'deadline-warning';
-                                                        $deadline_text .= " (Terlewat)";
-                                                    } elseif ($days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
-                                                        $deadline_class = 'deadline-close';
-                                                        $deadline_text .= " ($days_remaining hari lagi)";
-                                                    }
-                                                }
-                                                
-                                                // Status badge
-                                                $status_badge = '';
-                                                switch ($row['status']) {
-                                                    case 'Belum Dikerjakan':
-                                                        $status_badge = 'bg-secondary';
-                                                        break;
-                                                    case 'Sedang Dikerjakan':
-                                                        $status_badge = 'bg-info';
-                                                        break;
-                                                    case 'Kirim':
-                                                        $status_badge = 'bg-primary';
-                                                        break;
-                                                    case 'Revisi':
-                                                        $status_badge = 'bg-warning';
-                                                        break;
-                                                    case 'Selesai':
-                                                        $status_badge = 'bg-success';
-                                                        break;
-                                                    default:
-                                                        $status_badge = 'bg-secondary';
-                                                }
-                                            ?>
-                                            <tr>
-                                                <td><?php echo htmlspecialchars($row['judul']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['platform']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['deskripsi']); ?></td>
-                                                <td><span class="badge <?php echo $status_badge; ?>"><?php echo htmlspecialchars($row['status']); ?></span></td>
-                                                <td><?php echo isset($row['tanggal_mulai']) ? date('d-m-Y', strtotime($row['tanggal_mulai'])) : 'Tidak ada tanggal'; ?></td>
-                                                <td class="<?php echo $deadline_class; ?>"><?php echo $deadline_text; ?></td>
-                                                <td>
-                                                    <?php if (isset($row['link_drive']) && $row['link_drive']): ?>
-                                                        <a href="<?php echo htmlspecialchars($row['link_drive']); ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                            <i class="bi bi-link-45deg"></i> Lihat File
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <span class="text-muted">Belum ada link</span>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <a href="../modules/edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <a href="../views/catatan_admin.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">
-                                                            <i class="bi bi-chat-left-text"></i>
-                                                        </a>
-                                                        <a href="../modules/hapus_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
-                                                            <i class="bi bi-trash"></i>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                <div class="col-md-3">
+                                    <label for="tahun" class="form-label">Tahun</label>
+                                    <select class="form-select" id="tahun" name="tahun">
+                                        <option value="">Semua Tahun</option>
+                                        <?php
+                                        $current_year = date('Y');
+                                        for ($y = $current_year; $y >= $current_year - 5; $y--) {
+                                            echo "<option value=\"$y\"" . (($tahun == $y) ? ' selected' : '') . ">$y</option>";
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="">Semua Status</option>
+                                        <option value="Belum Dikerjakan" <?php echo ($status == 'Belum Dikerjakan') ? 'selected' : ''; ?>>Belum Dikerjakan</option>
+                                        <option value="Sedang Dikerjakan" <?php echo ($status == 'Sedang Dikerjakan') ? 'selected' : ''; ?>>Sedang Dikerjakan</option>
+                                        <option value="Kirim" <?php echo ($status == 'Kirim') ? 'selected' : ''; ?>>Kirim</option>
+                                        <option value="Revisi" <?php echo ($status == 'Revisi') ? 'selected' : ''; ?>>Revisi</option>
+                                        <option value="Selesai" <?php echo ($status == 'Selesai') ? 'selected' : ''; ?>>Selesai</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="anggota" class="form-label">Anggota</label>
+                                    <select class="form-select" id="anggota" name="anggota">
+                                        <option value="">Semua Anggota</option>
+                                        <?php 
+                                        mysqli_data_seek($anggota_list_result, 0);
+                                        while ($row = mysqli_fetch_assoc($anggota_list_result)): ?>
+                                            <option value="<?php echo $row['username']; ?>" <?php echo ($anggota == $row['username']) ? 'selected' : ''; ?>>
+                                                <?php echo $row['username']; ?>
+                                            </option>
                                         <?php endwhile; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                                                                        <td colspan="8" class="text-center">Tidak ada tugas dari Kepala Bidang</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
+                                    </select>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-search me-1"></i> Filter
+                                    </button>
+                                    <a href="dashboard.php" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Reset
+                                    </a>
+                                    <a href="?<?php echo http_build_query($_GET); ?>&export=csv" class="btn btn-success float-end">
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Ekspor CSV
+                                    </a>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Tugas Anggota -->
-                <div class="card mb-4 fade-in">
-                    <div class="card-header">
-                        <h6><i class="bi bi-people me-1"></i> Tugas Anggota</h6>
-                        <div class="card-tools">
-                            <a href="../modules/tambah_tugas_anggota.php" class="btn btn-sm btn-primary">
-                                <i class="bi bi-plus-lg"></i> Tambah Tugas
-                            </a>
-                            <span class="badge bg-primary ms-2"><?php echo mysqli_num_rows($result_anggota); ?> tugas</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Judul</th>
-                                        <th>Platform</th>
-                                        <th>Deskripsi</th>
-                                        <th>Status</th>
-                                        <th>Tanggal Mulai</th>
-                                        <th>Deadline</th>
-                                        <th>Link Drive</th>
-                                        <th>Penanggung Jawab</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if(mysqli_num_rows($result_anggota) > 0): ?>
-                                        <?php while ($row = mysqli_fetch_assoc($result_anggota)): ?>
-                                            <?php
-                                                $deadline_date = isset($row['deadline']) ? new DateTime($row['deadline']) : null;
-                                                $today = new DateTime();
-                                                $deadline_class = '';
-                                                $deadline_text = isset($row['deadline']) ? date('d-m-Y', strtotime($row['deadline'])) : 'Tidak ada deadline';
-                                                
-                                                if ($deadline_date) {
-                                                    $interval = $today->diff($deadline_date);
-                                                    $days_remaining = $interval->days;
-                                                    
-                                                    if ($today > $deadline_date && $row['status'] != 'Selesai') {
-                                                        $deadline_class = 'deadline-warning';
-                                                        $deadline_text .= " (Terlewat)";
-                                                    } elseif ($days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
-                                                        $deadline_class = 'deadline-close';
-                                                        $deadline_text .= " ($days_remaining hari lagi)";
-                                                    }
-                                                }
-                                                
-                                                // Status badge
-                                                $status_badge = '';
-                                                switch ($row['status']) {
-                                                    case 'Belum Dikerjakan':
-                                                        $status_badge = 'bg-secondary';
-                                                        break;
-                                                    case 'Sedang Dikerjakan':
-                                                        $status_badge = 'bg-info';
-                                                        break;
-                                                    case 'Kirim':
-                                                        $status_badge = 'bg-primary';
-                                                        break;
-                                                    case 'Revisi':
-                                                        $status_badge = 'bg-warning';
-                                                        break;
-                                                    case 'Selesai':
-                                                        $status_badge = 'bg-success';
-                                                        break;
-                                                    default:
-                                                        $status_badge = 'bg-secondary';
-                                                }
-                                            ?>
-                                            <tr>
-                                                <td><?php echo htmlspecialchars($row['judul']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['platform']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['deskripsi']); ?></td>
-                                                <td><span class="badge <?php echo $status_badge; ?>"><?php echo htmlspecialchars($row['status']); ?></span></td>
-                                                <td><?php echo isset($row['tanggal_mulai']) ? date('d-m-Y', strtotime($row['tanggal_mulai'])) : 'Tidak ada tanggal'; ?></td>
-                                                <td class="<?php echo $deadline_class; ?>"><?php echo $deadline_text; ?></td>
-                                                <td>
-                                                    <?php if (isset($row['link_drive']) && $row['link_drive']): ?>
-                                                        <a href="<?php echo htmlspecialchars($row['link_drive']); ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                            <i class="bi bi-link-45deg"></i> Lihat File
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <span class="text-muted">Belum ada link</span>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td><?php echo htmlspecialchars($row['penanggung_jawab']); ?></td>
-                                                <td>
-                                                    <div class="action-buttons">
-                                                        <a href="../modules/edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <a href="../views/catatan_admin.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">
-                                                            <i class="bi bi-chat-left-text"></i>
-                                                        </a>
-                                                        <a href="../modules/hapus_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
-                                                            <i class="bi bi-trash"></i>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="9" class="text-center">Tidak ada tugas anggota</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Statistik Tambahan -->
-                <div class="row fade-in">
-                    <!-- Statistik Anggota -->
-                    <div class="col-lg-6 mb-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="bi bi-bar-chart me-1"></i> Anggota dengan Tugas Terbanyak</h6>
+
+                    <!-- Statistik Kartu -->
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card stat-card primary h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="stat-title">Total Tugas</div>
+                                            <div class="stat-value"><?php echo $stats_anggota['total_tugas']; ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-clipboard-check stat-icon text-primary"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Anggota</th>
-                                                <th>Jumlah Tugas</th>
-                                                <th>Progress</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php 
-                                            mysqli_data_seek($anggota_result, 0);
-                                            if (mysqli_num_rows($anggota_result) > 0):
-                                                while ($row = mysqli_fetch_assoc($anggota_result)): 
-                                                    // Hitung persentase tugas selesai untuk anggota ini
-                                                    $anggota_name = $row['penanggung_jawab'];
-                                                    $anggota_stats_query = "SELECT 
-                                                        COUNT(*) as total,
-                                                        SUM(CASE WHEN status = 'Selesai' THEN 1 ELSE 0 END) as selesai
-                                                        FROM tugas_media 
-                                                        WHERE penanggung_jawab = '$anggota_name'";
-                                                    $anggota_stats_result = mysqli_query($conn, $anggota_stats_query);
-                                                    $anggota_stats = mysqli_fetch_assoc($anggota_stats_result);
-                                                    
-                                                    $completion_percentage = 0;
-                                                    if ($anggota_stats['total'] > 0) {
-                                                        $completion_percentage = round(($anggota_stats['selesai'] / $anggota_stats['total']) * 100);
-                                                    }
-                                            ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($row['penanggung_jawab']); ?></td>
-                                                    <td><?php echo $row['jumlah_tugas']; ?></td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $completion_percentage; ?>%" aria-valuenow="<?php echo $completion_percentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                                                        </div>
-                                                        <div class="small mt-1"><?php echo $completion_percentage; ?>% selesai</div>
-                                                    </td>
-                                                </tr>
-                                            <?php 
-                                                endwhile;
-                                            else:
-                                            ?>
-                                                <tr>
-                                                    <td colspan="3" class="text-center">Tidak ada data anggota</td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card stat-card success h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="stat-title">Tugas Selesai</div>
+                                            <div class="stat-value"><?php echo $stats_anggota['selesai']; ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-check-circle stat-icon text-success"></i>
+                                        </div>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $completion_percentage_anggota; ?>%" aria-valuenow="<?php echo $completion_percentage_anggota; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="small mt-2"><?php echo $completion_percentage_anggota; ?>% selesai</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card stat-card warning h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="stat-title">Deadline Dekat</div>
+                                            <div class="stat-value"><?php echo $upcoming; ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-clock stat-icon text-warning"></i>
+                                        </div>
+                                    </div>
+                                    <div class="small mt-2">Tugas dengan deadline 3 hari ke depan</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card stat-card danger h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col">
+                                            <div class="stat-title">Melewati Deadline</div>
+                                            <div class="stat-value"><?php echo $overdue; ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-exclamation-triangle stat-icon text-danger"></i>
+                                        </div>
+                                    </div>
+                                    <div class="small mt-2">Tugas yang belum selesai dan melewati deadline</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Statistik Platform -->
-                    <div class="col-lg-6 mb-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="bi bi-pie-chart me-1"></i> Platform Terbanyak</h6>
+
+                    <!-- Grafik dan Statistik -->
+                    <div class="row">
+                        <!-- Status Tugas -->
+                        <div class="col-xl-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <i class="bi bi-pie-chart me-1"></i> Status Tugas
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="statusChart"></canvas>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Platform</th>
-                                                <th>Jumlah Tugas</th>
-                                                <th>Persentase</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php 
-                                            mysqli_data_seek($platform_result, 0);
-                                            $total_platform_query = "SELECT COUNT(*) as total FROM tugas_media";
-                                            $total_platform_result = mysqli_query($conn, $total_platform_query);
-                                            $total_platform = mysqli_fetch_assoc($total_platform_result)['total'];
+                        </div>
+                        
+                        <!-- Anggota dengan Tugas Terbanyak -->
+                        <div class="col-xl-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <i class="bi bi-people me-1"></i> Anggota dengan Tugas Terbanyak
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="anggotaChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Platform Terbanyak -->
+                        <div class="col-xl-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <i class="bi bi-display me-1"></i> Platform Terbanyak
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Platform</th>
+                                                    <th>Jumlah</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php while ($row = mysqli_fetch_assoc($platform_result)): ?>
+                                                <tr>
+                                                    <td><?php echo $row['platform']; ?></td>
+                                                    <td><span class="badge bg-primary"><?php echo $row['jumlah']; ?></span></td>
+                                                </tr>
+                                                <?php endwhile; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tugas Melewati Deadline -->
+                        <div class="col-xl-8 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Tugas Melewati Deadline
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Judul</th>
+                                                    <th>Penanggung Jawab</th>
+                                                    <th>Deadline</th>
+                                                    <th>Terlambat</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (mysqli_num_rows($overdue_detail_result) > 0): ?>
+                                                    <?php while ($row = mysqli_fetch_assoc($overdue_detail_result)): ?>
+                                                    <tr>
+                                                        <td><?php echo $row['judul']; ?></td>
+                                                        <td><?php echo $row['penanggung_jawab']; ?></td>
+                                                        <td><?php echo date('d/m/Y', strtotime($row['deadline'])); ?></td>
+                                                        <td><span class="badge bg-danger"><?php echo $row['hari_terlambat']; ?> hari</span></td>
+                                                        <td>
+                                                            <a href="detail_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">
+                                                                <i class="bi bi-eye"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    <?php endwhile; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="5" class="text-center">Tidak ada tugas yang melewati deadline</td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daftar Tugas Terbaru -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="bi bi-list-task me-1"></i> Daftar Tugas Terbaru
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Judul</th>
+                                            <th>Platform</th>
+                                            <th>Penanggung Jawab</th>
+                                            <th>Deadline</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php 
+                                        $count = 0;
+                                        mysqli_data_seek($result_anggota, 0);
+                                        while ($row = mysqli_fetch_assoc($result_anggota)) {
+                                            if ($count >= 5) break; // Hanya tampilkan 5 tugas terbaru
+                                            $count++;
                                             
-                                            if (mysqli_num_rows($platform_result) > 0):
-                                                while ($row = mysqli_fetch_assoc($platform_result)): 
-                                                    $platform_percentage = 0;
-                                                    if ($total_platform > 0) {
-                                                        $platform_percentage = round(($row['jumlah'] / $total_platform) * 100);
+                                            $status_class = '';
+                                            switch ($row['status']) {
+                                                case 'Belum Dikerjakan':
+                                                    $status_class = 'bg-secondary';
+                                                    break;
+                                                case 'Sedang Dikerjakan':
+                                                    $status_class = 'bg-primary';
+                                                    break;
+                                                case 'Kirim':
+                                                    $status_class = 'bg-info';
+                                                    break;
+                                                case 'Revisi':
+                                                    $status_class = 'bg-warning';
+                                                    break;
+                                                case 'Selesai':
+                                                    $status_class = 'bg-success';
+                                                    break;
+                                                default:
+                                                    $status_class = 'bg-secondary';
+                                            }
+                                            
+                                            $deadline_date = isset($row['deadline']) ? new DateTime($row['deadline']) : new DateTime();
+                                            $today = new DateTime();
+                                            $deadline_class = '';
+                                            
+                                            if (isset($row['deadline'])) {
+                                                if ($today > $deadline_date && $row['status'] != 'Selesai') {
+                                                    $deadline_class = 'text-danger fw-bold';
+                                                } elseif ($today->diff($deadline_date)->days <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
+                                                    $deadline_class = 'text-warning fw-bold';
+                                                }
+                                            }
+                                        ?>
+                                        <tr>
+                                            <td><?php echo $row['judul']; ?></td>
+                                            <td><?php echo $row['platform']; ?></td>
+                                            <td><?php echo $row['penanggung_jawab']; ?></td>
+                                            <td class="<?php echo $deadline_class; ?>">
+                                                <?php 
+                                                    if (isset($row['deadline'])) {
+                                                        echo date('d/m/Y', strtotime($row['deadline']));
+                                                        if ($today > $deadline_date && $row['status'] != 'Selesai') {
+                                                            echo ' <i class="bi bi-exclamation-circle text-danger" title="Melewati deadline"></i>';
+                                                        } elseif ($today->diff($deadline_date)->days <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
+                                                            echo ' <i class="bi bi-clock text-warning" title="Deadline dekat"></i>';
+                                                        }
+                                                    } else {
+                                                        echo 'Tidak ada deadline';
                                                     }
-                                            ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($row['platform']); ?></td>
-                                                    <td><?php echo $row['jumlah']; ?></td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar bg-info" role="progressbar" style="width: <?php echo $platform_percentage; ?>%" aria-valuenow="<?php echo $platform_percentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                                                        </div>
-                                                        <div class="small mt-1"><?php echo $platform_percentage; ?>%</div>
-                                                    </td>
-                                                </tr>
-                                            <?php 
-                                                endwhile;
-                                            else:
-                                            ?>
-                                                <tr>
-                                                    <td colspan="3" class="text-center">Tidak ada data platform</td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                ?>
+                                            </td>
+                                            <td><span class="badge <?php echo $status_class; ?>"><?php echo $row['status']; ?></span></td>
+                                            <td>
+                                                <a href="detail_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <?php } ?>
+                                        
+                                        <?php if ($count == 0): ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center">Tidak ada tugas yang ditemukan</td>
+                                        </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tugas Terlambat -->
-                    <div class="col-lg-12 mb-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="bi bi-exclamation-triangle me-1"></i> Tugas yang Melewati Deadline</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Judul</th>
-                                                <th>Penanggung Jawab</th>
-                                                <th>Deadline</th>
-                                                <th>Terlambat</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php 
-                                            mysqli_data_seek($overdue_detail_result, 0);
-                                            if (mysqli_num_rows($overdue_detail_result) > 0):
-                                                while ($row = mysqli_fetch_assoc($overdue_detail_result)): 
-                                            ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($row['judul']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['penanggung_jawab']); ?></td>
-                                                    <td class="deadline-warning"><?php echo isset($row['deadline']) ? date('d-m-Y', strtotime($row['deadline'])) : 'Tidak ada deadline'; ?></td>
-                                                    <td><?php echo $row['hari_terlambat']; ?> hari</td>
-                                                    <td>
-                                                        <a href="../modules/edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary">
-                                                            <i class="bi bi-pencil"></i> Edit
-                                                        </a>
-                                                    </td>
-                                                </tr
-                                                </tr>
-                                            <?php 
-                                                endwhile; 
-                                            else:
-                                            ?>
-                                                <tr>
-                                                    <td colspan="5" class="text-center">Tidak ada tugas yang melewati deadline</td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div class="mt-3">
+                                <a href="tugas.php" class="btn btn-primary">Lihat Semua Tugas</a>
                             </div>
                         </div>
                     </div>
@@ -782,101 +1056,224 @@ $nama_bulan = [
             </div>
         </div>
     </div>
-    
-    <!-- Bootstrap JS Bundle with Popper -->
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar toggle
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebarWrapper = document.getElementById('sidebar-wrapper');
-            const contentWrapper = document.getElementById('content-wrapper');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
+        // Perbaikan JavaScript untuk responsivitas sidebar
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('loaded');
+    
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebarWrapper = document.getElementById('sidebar-wrapper');
+    const pageContentWrapper = document.getElementById('page-content-wrapper');
+    
+    // Tambahkan overlay untuk mobile
+    const overlay = document.createElement('div');
+    overlay.id = 'sidebarOverlay';
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+    
+    menuToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (window.innerWidth < 768) {
+            // Mobile behavior - show/hide dengan overlay
+            sidebarWrapper.classList.toggle('show');
+            overlay.classList.toggle('show');
+        } else {
+            // Desktop behavior - collapse/expand
+            sidebarWrapper.classList.toggle('collapsed');
+            pageContentWrapper.classList.toggle('expanded');
+        }
+    });
+    
+    // Tutup sidebar saat overlay diklik (untuk mobile)
+    overlay.addEventListener('click', function() {
+        sidebarWrapper.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+    
+    // Responsive behavior
+    function checkWidth() {
+        if (window.innerWidth < 768) {
+            // Reset untuk mobile view
+            sidebarWrapper.classList.remove('collapsed');
+            pageContentWrapper.classList.remove('expanded');
             
-            sidebarToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Periksa ukuran layar
-                if (window.innerWidth < 768) {
-                    // Untuk mobile: tampilkan sidebar penuh dengan overlay
-                    sidebarWrapper.classList.toggle('show');
-                    sidebarOverlay.classList.toggle('show');
-                } else {
-                    // Untuk desktop: toggle collapsed state
-                    sidebarWrapper.classList.toggle('collapsed');
-                    contentWrapper.classList.toggle('collapsed');
+            // Jika sidebar sedang terbuka di mobile, tampilkan overlay
+            if (sidebarWrapper.classList.contains('show')) {
+                overlay.classList.add('show');
+            }
+        } else {
+            // Reset untuk desktop view
+            overlay.classList.remove('show');
+            sidebarWrapper.classList.remove('show');
+        }
+    }
+    
+    // Initial check
+    checkWidth();
+    
+    // Check on resize
+    window.addEventListener('resize', checkWidth);
+            
+            // Status Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Belum Dikerjakan', 'Sedang Dikerjakan', 'Kirim', 'Revisi', 'Selesai'],
+                    datasets: [{
+                        data: [
+                            <?php echo $stats_anggota['belum_dikerjakan']; ?>,
+                            <?php echo $stats_anggota['sedang_dikerjakan']; ?>,
+                            <?php echo $stats_anggota['kirim']; ?>,
+                            <?php echo $stats_anggota['revisi']; ?>,
+                            <?php echo $stats_anggota['selesai']; ?>
+                        ],
+                        backgroundColor: [
+                            '#858796', // Belum Dikerjakan - abu-abu
+                            '#4e73df', // Sedang Dikerjakan - biru
+                            '#36b9cc', // Kirim - cyan
+                            '#f6c23e', // Revisi - kuning
+                            '#1cc88a'  // Selesai - hijau
+                        ],
+                        hoverBackgroundColor: [
+                            '#717380',
+                            '#2e59d9',
+                            '#2c9faf',
+                            '#dda20a',
+                            '#17a673'
+                        ],
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: "rgb(255,255,255)",
+                            bodyColor: "#858796",
+                            borderColor: '#dddfeb',
+                            borderWidth: 1,
+                            displayColors: false,
+                            caretPadding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%',
+                    elements: {
+                        arc: {
+                            borderWidth: 0
+                        }
+                    }
                 }
             });
             
-            // Tutup sidebar saat overlay diklik (untuk mobile)
-            sidebarOverlay.addEventListener('click', function() {
-                sidebarWrapper.classList.remove('show');
-                sidebarOverlay.classList.remove('show');
-            });
-            
-            // Responsive sidebar
-            function checkWidth() {
-                if (window.innerWidth < 768) {
-                    // Mobile view
-                    sidebarWrapper.classList.remove('collapsed');
-                    contentWrapper.classList.remove('collapsed');
-                    
-                    // Jika sidebar terbuka di mobile, tambahkan overlay
-                    if (sidebarWrapper.classList.contains('show')) {
-                        sidebarOverlay.classList.add('show');
+            // Anggota Chart
+            const anggotaCtx = document.getElementById('anggotaChart').getContext('2d');
+            const anggotaChart = new Chart(anggotaCtx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        <?php 
+                        mysqli_data_seek($anggota_result, 0);
+                        while ($row = mysqli_fetch_assoc($anggota_result)) {
+                            echo "'" . $row['penanggung_jawab'] . "', ";
+                        }
+                        ?>
+                    ],
+                    datasets: [{
+                        label: 'Jumlah Tugas',
+                        data: [
+                            <?php 
+                            mysqli_data_seek($anggota_result, 0);
+                            while ($row = mysqli_fetch_assoc($anggota_result)) {
+                                echo $row['jumlah_tugas'] . ", ";
+                            }
+                            ?>
+                        ],
+                        backgroundColor: '#4e73df',
+                        borderColor: '#4e73df',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        maxBarThickness: 50
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                                color: "rgba(0, 0, 0, 0.05)",
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: "rgb(255,255,255)",
+                            bodyColor: "#858796",
+                            titleMarginBottom: 10,
+                            titleColor: '#6e707e',
+                            titleFontSize: 14,
+                            borderColor: '#dddfeb',
+                            borderWidth: 1,
+                            padding: 15,
+                            displayColors: false,
+                            caretPadding: 10,
+                        }
                     }
-                } else {
-                    // Desktop view
-                    sidebarOverlay.classList.remove('show');
-                    sidebarWrapper.classList.remove('show');
-                    
-                    // Jika sebelumnya dalam mode collapsed, pertahankan
-                    if (localStorage.getItem('sidebarState') === 'collapsed') {
-                        sidebarWrapper.classList.add('collapsed');
-                        contentWrapper.classList.add('collapsed');
-                    }
                 }
-            }
-            
-            // Simpan state sidebar di localStorage
-            function saveSidebarState() {
-                if (sidebarWrapper.classList.contains('collapsed')) {
-                    localStorage.setItem('sidebarState', 'collapsed');
-                } else {
-                    localStorage.setItem('sidebarState', 'expanded');
-                }
-            }
-            
-            // Restore sidebar state dari localStorage
-            function restoreSidebarState() {
-                if (localStorage.getItem('sidebarState') === 'collapsed') {
-                    sidebarWrapper.classList.add('collapsed');
-                    contentWrapper.classList.add('collapsed');
-                }
-            }
-            
-            // Initial check
-            checkWidth();
-            restoreSidebarState();
-            
-            // Check on resize
-            window.addEventListener('resize', checkWidth);
-            
-            // Save state when toggled
-            sidebarToggle.addEventListener('click', saveSidebarState);
-            
-            // Set body as loaded
-            document.body.classList.add('loaded');
-            
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         });
     </script>
 </body>
 </html>
+

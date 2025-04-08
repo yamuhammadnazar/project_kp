@@ -154,6 +154,7 @@ body.loaded {
     width: calc(100% - var(--sidebar-collapsed-width));
 }
 
+/* Topbar styling yang diperbarui */
 .topbar {
     height: var(--topbar-height);
     background-color: white;
@@ -173,6 +174,12 @@ body.loaded {
     color: #4e73df;
     cursor: pointer;
     transition: transform 0.2s;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .topbar .toggle-sidebar:hover {
@@ -184,6 +191,57 @@ body.loaded {
     border-right: 1px solid #e3e6f0;
     height: calc(var(--topbar-height) - 2rem);
     margin: auto 1rem;
+}
+
+.btn-outline-success {
+    border-color: #1cc88a;
+    color: #1cc88a;
+}
+
+.btn-outline-success:hover {
+    background-color: #1cc88a;
+    color: #fff;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    font-weight: bold;
+}
+
+.dropdown-menu {
+    min-width: 12rem;
+}
+
+.dropdown-header {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #4e73df;
+}
+
+.animated--grow-in {
+    animation-name: growIn;
+    animation-duration: 0.2s;
+    animation-timing-function: transform cubic-bezier(0.18, 1.25, 0.4, 1), opacity cubic-bezier(0, 1, 0.4, 1);
+}
+
+@keyframes growIn {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.text-gray-400 {
+    color: #858796 !important;
+}
+
+.dropdown-toggle::after {
+    display: none;
 }
 
 .user-info {
