@@ -95,14 +95,33 @@ if ($stats_anggota['total_tugas'] > 0) {
     $completion_percentage_anggota = round(($stats_anggota['selesai'] / $stats_anggota['total_tugas']) * 100);
 }
 
-// Statistik: Anggota dengan tugas terbanyak
-$anggota_query = "SELECT penanggung_jawab, COUNT(*) as jumlah_tugas
-                  FROM tugas_media
-                  WHERE pemberi_tugas = 'admin'
-                  GROUP BY penanggung_jawab
-                  ORDER BY jumlah_tugas DESC
-                  LIMIT 5";
+// Query untuk mendapatkan semua anggota
+$anggota_query = "SELECT username FROM users WHERE role = 'anggota'";
 $anggota_result = mysqli_query($conn, $anggota_query);
+
+// Array untuk menyimpan data anggota dan jumlah tugas
+$anggota_data = array();
+
+// Isi array dengan semua anggota dan inisialisasi jumlah tugas dengan 0
+while ($row = mysqli_fetch_assoc($anggota_result)) {
+    $anggota_data[$row['username']] = 0;
+}
+
+// Query untuk mendapatkan jumlah tugas per anggota
+$tugas_query = "SELECT penanggung_jawab, COUNT(*) as jumlah_tugas 
+                FROM tugas_media 
+                GROUP BY penanggung_jawab";
+$tugas_result = mysqli_query($conn, $tugas_query);
+
+// Update jumlah tugas untuk anggota yang memiliki tugas
+while ($row = mysqli_fetch_assoc($tugas_result)) {
+    if (isset($anggota_data[$row['penanggung_jawab']])) {
+        $anggota_data[$row['penanggung_jawab']] = $row['jumlah_tugas'];
+    }
+}
+
+// Debugging - cetak data untuk melihat apa yang kita dapatkan
+// echo "<pre>"; print_r($anggota_data); echo "</pre>";
 
 // Statistik: Platform terbanyak
 $platform_query = "SELECT platform, COUNT(*) as jumlah
@@ -201,7 +220,7 @@ $nama_bulan = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin</title>
+    <title>Dashboard Staff</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -273,7 +292,7 @@ $nama_bulan = [
         }
         
         #sidebar-wrapper.collapsed .sidebar-heading::before {
-            content: "MA";
+            content: "MS";
             font-size: 1.2rem;
         }
         
@@ -649,7 +668,7 @@ $nama_bulan = [
     <div id="wrapper">
         <!-- Sidebar -->
 <div id="sidebar-wrapper">
-    <div class="sidebar-heading">Media Admin</div>
+    <div class="sidebar-heading">Media Staff</div>
     <div class="list-group">
         <a href="admin_dashboard.php" class="list-group-item active">
             <i class="bi bi-speedometer2"></i>
@@ -667,10 +686,10 @@ $nama_bulan = [
             <i class="bi bi-people"></i> <!-- Ikon yang lebih sesuai untuk kelola akun -->
             <span>Kelola Akun Anggota</span>
         </a>
-        <a href="../modules/laporan.php" class="list-group-item">
-            <i class="bi bi-key"></i> <!-- Ikon yang lebih sesuai untuk ganti password -->
-            <span>Ganti Password</span>
-        </a>
+        <a href="../auth/register.php" class="list-group-item">
+                    <i class="bi bi-person-plus"></i>
+                    <span>Tambah Anggota</span>
+                </a>
         <a href="../auth/logout.php" class="list-group-item">
             <i class="bi bi-box-arrow-right"></i>
             <span>Keluar</span>
@@ -701,7 +720,7 @@ $nama_bulan = [
 
             <div class="content">
                 <div class="container-fluid">
-                    <h1 class="h3 mb-4 text-gray-800">Dashboard Admin</h1>
+                    <h1 class="h3 mb-4 text-gray-800">Dashboard Staff</h1>
                     
                     <!-- Filter Form -->
                     <div class="card mb-4">
@@ -931,9 +950,9 @@ $nama_bulan = [
                                                         <td><?php echo date('d/m/Y', strtotime($row['deadline'])); ?></td>
                                                         <td><span class="badge bg-danger"><?php echo $row['hari_terlambat']; ?> hari</span></td>
                                                         <td>
-                                                            <a href="detail_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">
-                                                                <i class="bi bi-eye"></i>
-                                                            </a>
+                                                        <a href="../modules/tambah_catatan.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
+                                                            <i class="bi bi-chat-square-text"></i>
+                                                        </a>
                                                         </td>
                                                     </tr>
                                                     <?php endwhile; ?>
@@ -1029,13 +1048,14 @@ $nama_bulan = [
                                             </td>
                                             <td><span class="badge <?php echo $status_class; ?>"><?php echo $row['status']; ?></span></td>
                                             <td>
-                                                <a href="detail_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a href="edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">
+                                                <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning" title="Edit Tugas">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
+                                                <a href="../modules/tambah_catatan.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
+                                                    <i class="bi bi-chat-square-text"></i>
+                                                </a>
                                             </td>
+
                                         </tr>
                                         <?php } ?>
                                         
@@ -1195,27 +1215,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-            
+
             // Anggota Chart
             const anggotaCtx = document.getElementById('anggotaChart').getContext('2d');
             const anggotaChart = new Chart(anggotaCtx, {
                 type: 'bar',
                 data: {
                     labels: [
-                        <?php 
-                        mysqli_data_seek($anggota_result, 0);
-                        while ($row = mysqli_fetch_assoc($anggota_result)) {
-                            echo "'" . $row['penanggung_jawab'] . "', ";
+                        <?php
+                        foreach ($anggota_data as $username => $jumlah) {
+                            echo "'" . $username . "', ";
                         }
                         ?>
                     ],
                     datasets: [{
                         label: 'Jumlah Tugas',
                         data: [
-                            <?php 
-                            mysqli_data_seek($anggota_result, 0);
-                            while ($row = mysqli_fetch_assoc($anggota_result)) {
-                                echo $row['jumlah_tugas'] . ", ";
+                            <?php
+                            foreach ($anggota_data as $jumlah) {
+                                echo $jumlah . ", ";
                             }
                             ?>
                         ],
@@ -1272,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+
         });
     </script>
 </body>

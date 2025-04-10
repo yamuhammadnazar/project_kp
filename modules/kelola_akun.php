@@ -8,10 +8,26 @@ if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "admin") {
 
 $username = $_SESSION['username'];
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+
+// Pagination setup
+$records_per_page = 5;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $records_per_page;
+
+// Count total records for pagination
+$count_query = "SELECT COUNT(*) as total FROM users WHERE 
+                ((role = 'anggota' AND username LIKE '%$search%') 
+                OR (role = 'admin' AND username = '$username'))";
+$count_result = mysqli_query($conn, $count_query);
+$total_records = mysqli_fetch_assoc($count_result)['total'];
+$total_pages = ceil($total_records / $records_per_page);
+
+// Main query with pagination
 $query = "SELECT * FROM users WHERE 
-          ((role = 'anggota' AND username LIKE '%$search%') 
-          OR (role = 'admin' AND username = '$username')) 
-          ORDER BY role ASC";
+           ((role = 'anggota' AND username LIKE '%$search%') 
+           OR (role = 'admin' AND username = '$username')) 
+           ORDER BY role ASC 
+           LIMIT $offset, $records_per_page";
 $result = mysqli_query($conn, $query);
 ?>
 
@@ -294,10 +310,11 @@ $result = mysqli_query($conn, $query);
             padding: 1.5rem;
         }
         
-        /* Table styling */
+        /* Table styling - Ukuran lebih kecil */
         .table {
             width: 100%;
             margin-bottom: 0;
+            font-size: 0.95rem;
         }
         
         .table th {
@@ -308,7 +325,7 @@ $result = mysqli_query($conn, $query);
         }
         
         .table td, .table th {
-            padding: 1rem;
+            padding: 0.6rem;
             vertical-align: middle;
         }
         
@@ -319,8 +336,9 @@ $result = mysqli_query($conn, $query);
         /* Badge styling */
         .badge {
             font-weight: 600;
-            padding: 0.5em 0.75em;
+            padding: 0.4em 0.6em;
             border-radius: 0.25rem;
+            font-size: 0.8rem;
         }
         
         .badge-admin {
@@ -333,12 +351,10 @@ $result = mysqli_query($conn, $query);
             color: white;
         }
         
-        /* Button styling */
-        .btn {
-            border-radius: 8px;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            transition: all 0.2s;
+        /* Button styling - Ukuran lebih kecil */
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
         }
         
         .btn-primary {
@@ -430,6 +446,34 @@ $result = mysqli_query($conn, $query);
             color: #4e73df;
         }
         
+        /* Pagination styling */
+        .pagination {
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        
+        .pagination .page-item .page-link {
+            color: #4e73df;
+            border-radius: 0.25rem;
+            margin: 0 0.15rem;
+            border: 1px solid #e3e6f0;
+            font-size: 0.9rem;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #858796;
+            background-color: #f8f9fc;
+        }
+        
+        .pagination .page-item .page-link:hover {
+            background-color: #eaecf4;
+        }
+        
         /* Animasi untuk card */
         @media (min-width: 992px) {
             .card:hover {
@@ -439,7 +483,6 @@ $result = mysqli_query($conn, $query);
         }
     </style>
 </head>
-
 <body>
     <div id="wrapper">
         <!-- Sidebar -->
@@ -463,8 +506,8 @@ $result = mysqli_query($conn, $query);
                     <span>Kelola Akun Anggota</span>
                 </a>
                 <a href="../auth/register.php" class="list-group-item">
-                    <i class="bi bi-key"></i>
-                    <span>Ganti Password</span>
+                    <i class="bi bi-person-plus"></i>
+                    <span>Tambah Anggota</span>
                 </a>
                 <a href="../auth/logout.php" class="list-group-item">
                     <i class="bi bi-box-arrow-right"></i>
@@ -472,7 +515,6 @@ $result = mysqli_query($conn, $query);
                 </a>
             </div>
         </div>
-
         <!-- Page Content -->
         <div id="page-content-wrapper">
             <div class="topbar">
@@ -493,13 +535,11 @@ $result = mysqli_query($conn, $query);
                     </div>
                 </div>
             </div>
-
             <div class="content">
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Kelola Akun Anggota</h1>
                     </div>
-
                     <div class="card">
                         <div class="card-header d-flex align-items-center justify-content-between">
                             <div>
@@ -520,7 +560,6 @@ $result = mysqli_query($conn, $query);
                                     </form>
                                 </div>
                             </div>
-
                             <!-- Alert Messages -->
                             <?php if(isset($_SESSION['success'])): ?>
                                 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -537,7 +576,6 @@ $result = mysqli_query($conn, $query);
                                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
                             <?php endif; ?>
-
                             <!-- Table -->
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle">
@@ -550,9 +588,9 @@ $result = mysqli_query($conn, $query);
                                     </thead>
                                     <tbody>
                                         <?php 
-                                        if(mysqli_num_rows($result) > 0):
-                                            while($row = mysqli_fetch_assoc($result)): 
-                                        ?>
+                                         if(mysqli_num_rows($result) > 0):
+                                            while($row = mysqli_fetch_assoc($result)):
+                                         ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($row['username']); ?></td>
                                             <td>
@@ -568,8 +606,8 @@ $result = mysqli_query($conn, $query);
                                                     </button>
                                                     
                                                     <?php if($row['role'] == 'anggota'): ?>
-                                                        <a href="hapus_akun.php?id=<?php echo $row['id']; ?>" 
-                                                           class="btn btn-danger btn-sm"
+                                                        <a href="hapus_akun.php?id=<?php echo $row['id']; ?>"
+                                                            class="btn btn-danger btn-sm"
                                                            onclick="return confirm('Yakin ingin menghapus akun ini?')">
                                                             <i class="bi bi-trash me-1"></i> Hapus
                                                         </a>
@@ -577,9 +615,9 @@ $result = mysqli_query($conn, $query);
                                                 </div>
                                             </td>
                                         </tr>
-                                        <?php 
-                                            endwhile; 
-                                        else: 
+                                        <?php
+                                            endwhile;
+                                        else:
                                         ?>
                                         <tr>
                                             <td colspan="3" class="text-center py-4">
@@ -593,16 +631,44 @@ $result = mysqli_query($conn, $query);
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!-- Pagination -->
+                            <?php if($total_pages > 1): ?>
+                            <nav aria-label="Halaman navigasi">
+                                <ul class="pagination">
+                                    <!-- Previous Button -->
+                                    <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                                        <a class="page-link" href="?page=<?php echo $page-1; ?><?php echo !empty($search) ? '&search='.urlencode($search) : ''; ?>" aria-label="Sebelumnya">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    
+                                    <!-- Page Numbers -->
+                                    <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                                        <li class="page-item <?php echo ($page == $i) ? 'active' : ''; ?>">
+                                            <a class="page-link" href="?page=<?php echo $i; ?><?php echo !empty($search) ? '&search='.urlencode($search) : ''; ?>">
+                                                <?php echo $i; ?>
+                                            </a>
+                                        </li>
+                                    <?php endfor; ?>
+                                    
+                                    <!-- Next Button -->
+                                    <li class="page-item <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                                        <a class="page-link" href="?page=<?php echo $page+1; ?><?php echo !empty($search) ? '&search='.urlencode($search) : ''; ?>" aria-label="Selanjutnya">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- Overlay for mobile -->
     <div class="sidebar-overlay"></div>
-
     <!-- Modal Edit Username dan Reset Password -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -643,7 +709,6 @@ $result = mysqli_query($conn, $query);
             </div>
         </div>
     </div>
-
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -727,4 +792,3 @@ $result = mysqli_query($conn, $query);
     </script>
 </body>
 </html>
-

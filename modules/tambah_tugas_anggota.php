@@ -16,11 +16,11 @@ $table_exists = mysqli_num_rows($table_exists_result) > 0;
 // Query untuk mendapatkan daftar anggota
 if ($table_exists) {
     // Jika tabel tugas ada, ambil data dengan jumlah tugas
-    $query_anggota = "SELECT u.username, COUNT(t.id) as jumlah_tugas 
-                     FROM users u 
-                     LEFT JOIN tugas t ON u.username = t.penanggung_jawab AND t.status != 'Selesai'
-                     WHERE u.role = 'anggota' 
-                     GROUP BY u.username
+    $query_anggota = "SELECT u.username, COUNT(t.id) as jumlah_tugas
+                      FROM users u
+                      LEFT JOIN tugas t ON u.username = t.penanggung_jawab AND t.status != 'Selesai'
+                     WHERE u.role = 'anggota'
+                      GROUP BY u.username
                      ORDER BY jumlah_tugas ASC";
 } else {
     // Jika tabel tugas belum ada, ambil hanya username
@@ -35,7 +35,6 @@ if (!$anggota_list_result) {
     $anggota_list_result = mysqli_query($conn, $query_anggota_fallback);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,6 +50,9 @@ if (!$anggota_list_result) {
     
     <!-- Animate.css untuk animasi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
     
     <!-- Custom CSS -->
     <style>
@@ -432,7 +434,6 @@ if (!$anggota_list_result) {
         }
     </style>
 </head>
-
 <body>
     <div id="wrapper">
         <!-- Sidebar -->
@@ -441,6 +442,7 @@ if (!$anggota_list_result) {
             <div class="list-group">
                 <a href="../dashboard/admin_dashboard.php" class="list-group-item">
                     <i class="bi bi-speedometer2"></i>
+                    <span>
                     <span>Dashboard</span>
                 </a>
                 <a href="../modules/daftar_tugas_admin.php" class="list-group-item">
@@ -455,9 +457,9 @@ if (!$anggota_list_result) {
                     <i class="bi bi-people"></i>
                     <span>Kelola Akun Anggota</span>
                 </a>
-                <a href="../modules/ganti_password.php" class="list-group-item">
-                    <i class="bi bi-key"></i>
-                    <span>Ganti Password</span>
+                <a href="../auth/register.php" class="list-group-item">
+                    <i class="bi bi-person-plus"></i>
+                    <span>Tambah Anggota</span>
                 </a>
                 <a href="../auth/logout.php" class="list-group-item">
                     <i class="bi bi-box-arrow-right"></i>
@@ -465,7 +467,6 @@ if (!$anggota_list_result) {
                 </a>
             </div>
         </div>
-
         <!-- Page Content -->
         <div id="page-content-wrapper">
             <div class="topbar">
@@ -486,18 +487,45 @@ if (!$anggota_list_result) {
                     </div>
                 </div>
             </div>
-
             <div class="content">
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-3">
                         <h1 class="h3 mb-0 text-gray-800">Tambah Tugas Baru</h1>
                     </div>
-
                     <div class="card">
                         <div class="card-header d-flex align-items-center">
                             <i class="bi bi-plus-circle me-2"></i> Form Tambah Tugas
                         </div>
                         <div class="card-body">
+                        <?php if (isset($_SESSION['success'])): ?>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <?php echo $_SESSION['success']; ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <?php unset($_SESSION['success']); ?>
+                        <?php endif; ?>
+                        
+                        <?php if (isset($_SESSION['error'])): ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <?php echo $_SESSION['error']; ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <?php unset($_SESSION['error']); ?>
+                        <?php endif; ?>
+                        
+                        <?php if (isset($_SESSION['errors'])): ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <strong>Error!</strong>
+                                <ul class="mb-0">
+                                    <?php foreach ($_SESSION['errors'] as $error): ?>
+                                        <li><?php echo $error; ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <?php unset($_SESSION['errors']); ?>
+                        <?php endif; ?>
+                        
                             <!-- Nav tabs untuk form yang lebih ringkas -->
                             <ul class="nav nav-tabs" id="taskTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
@@ -511,8 +539,7 @@ if (!$anggota_list_result) {
                                     </button>
                                 </li>
                             </ul>
-
-                            <form action="../controllers/proses_tambah_anggota.php" method="POST" class="mt-3">
+                            <form action="../controllers/proses_tambah_anggota.php" method="POST" class="mt-3" id="taskForm">
                                 <div class="tab-content" id="taskTabsContent">
                                     <!-- Tab 1: Informasi Dasar -->
                                     <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
@@ -574,7 +601,6 @@ if (!$anggota_list_result) {
                                             </div>
                                         </div>
                                     </div>
-
                                     <!-- Tab 2: Detail Tambahan (Jadwal) -->
                                     <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
                                         <div class="row g-3">
@@ -607,15 +633,32 @@ if (!$anggota_list_result) {
             </div>
         </div>
     </div>
-
     <!-- Overlay for mobile -->
     <div class="sidebar-overlay"></div>
-
+    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Cek apakah ada pesan sukses dari session
+            const successMessage = document.querySelector('.alert-success');
+            if (successMessage) {
+                const message = successMessage.textContent.trim();
+                successMessage.remove(); // Hapus alert default
+                
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: message,
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#4e73df'
+                });
+            }
+            
             document.body.classList.add('loaded');
             
             const menuToggle = document.getElementById('menu-toggle');
@@ -673,12 +716,56 @@ if (!$anggota_list_result) {
                 resizeTimer = setTimeout(checkWidth, 100);
             });
             
-            // Tab navigation
+            // Tab navigation dengan validasi
             const nextTabButtons = document.querySelectorAll('.next-tab');
             const prevTabButtons = document.querySelectorAll('.prev-tab');
             
             nextTabButtons.forEach(button => {
                 button.addEventListener('click', function() {
+                    // Validasi field di tab pertama sebelum pindah ke tab berikutnya
+                    const currentTab = document.getElementById('info');
+                    const requiredFields = currentTab.querySelectorAll('[required]');
+                    let isValid = true;
+                    let firstInvalidField = null;
+                    let missingFields = [];
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            isValid = false;
+                            field.classList.add('is-invalid');
+                            if (!firstInvalidField) firstInvalidField = field;
+                            
+                            // Dapatkan label untuk field ini
+                            const label = field.previousElementSibling ? field.previousElementSibling.textContent : field.getAttribute('placeholder');
+                            missingFields.push(label);
+                        } else {
+                            field.classList.remove('is-invalid');
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        // Tampilkan pesan error dengan SweetAlert2
+                        Swal.fire({
+                            title: 'Form Belum Lengkap',
+                            html: `
+                                <div class="text-start">
+                                    <p>Mohon lengkapi field berikut:</p>
+                                    <ul class="text-danger">
+                                        ${missingFields.map(field => `<li>${field}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            confirmButtonText: 'Mengerti',
+                            confirmButtonColor: '#4e73df'
+                        }).then((result) => {
+                            // Focus ke field pertama yang belum diisi
+                            if (firstInvalidField) firstInvalidField.focus();
+                        });
+                        return;
+                    }
+                    
+                    // Jika semua valid, pindah ke tab berikutnya
                     const detailsTab = new bootstrap.Tab(document.getElementById('details-tab'));
                     detailsTab.show();
                 });
@@ -692,16 +779,136 @@ if (!$anggota_list_result) {
             });
             
             // Form validation
-            const form = document.querySelector('form');
+            const form = document.getElementById('taskForm');
             form.addEventListener('submit', function(event) {
+                // Validasi tanggal
                 const tanggalMulai = new Date(document.getElementById('tanggal_mulai').value);
                 const deadline = new Date(document.getElementById('deadline').value);
                 
+                // Cek apakah semua field yang required sudah diisi
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+                let firstInvalidField = null;
+                let missingFields = [];
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.classList.add('is-invalid');
+                        if (!firstInvalidField) firstInvalidField = field;
+                        
+                        // Dapatkan label untuk field ini
+                        const label = field.previousElementSibling ? field.previousElementSibling.textContent : field.getAttribute('placeholder');
+                        missingFields.push(label);
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+                
+                if (!isValid) {
+                    event.preventDefault();
+                    
+                    // Tampilkan pesan error dengan SweetAlert2
+                    Swal.fire({
+                        title: 'Form Belum Lengkap',
+                        html: `
+                            <div class="text-start">
+                                <p>Mohon lengkapi field berikut:</p>
+                                <ul class="text-danger">
+                                    ${missingFields.map(field => `<li>${field}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#4e73df'
+                    }).then((result) => {
+                        // Focus ke field pertama yang belum diisi
+                        if (firstInvalidField) firstInvalidField.focus();
+                        
+                        // Jika field yang error ada di tab pertama, pindah ke tab pertama
+                        if (firstInvalidField.closest('#info')) {
+                            const infoTab = new bootstrap.Tab(document.getElementById('info-tab'));
+                            infoTab.show();
+                        } else if (firstInvalidField.closest('#details')) {
+                            const detailsTab = new bootstrap.Tab(document.getElementById('details-tab'));
+                            detailsTab.show();
+                        }
+                    });
+                    
+                    return;
+                }
+                
+                // Validasi tanggal
                 if (deadline < tanggalMulai) {
                     event.preventDefault();
-                    alert('Deadline tidak boleh lebih awal dari tanggal mulai!');
+                    
+                    Swal.fire({
+                        title: 'Tanggal Tidak Valid',
+                        text: 'Deadline tidak boleh lebih awal dari tanggal mulai!',
+                        icon: 'error',
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#4e73df'
+                    }).then((result) => {
+                        document.getElementById('deadline').focus();
+                        
+                        // Pindah ke tab yang berisi field tanggal
+                        const detailsTab = new bootstrap.Tab(document.getElementById('details-tab'));
+                        detailsTab.show();
+                    });
                 }
             });
+            
+            // Tambahkan validasi real-time untuk semua field required
+            const allRequiredFields = document.querySelectorAll('[required]');
+            allRequiredFields.forEach(field => {
+                field.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+                
+                field.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            });
+            
+            // Validasi tanggal secara real-time
+            const deadlineField = document.getElementById('deadline');
+            const tanggalMulaiField = document.getElementById('tanggal_mulai');
+            
+            deadlineField.addEventListener('change', validateDates);
+            tanggalMulaiField.addEventListener('change', validateDates);
+            
+            function validateDates() {
+                const tanggalMulai = new Date(tanggalMulaiField.value);
+                const deadline = new Date(deadlineField.value);
+                
+                if (tanggalMulaiField.value && deadlineField.value) {
+                    if (deadline < tanggalMulai) {
+                        deadlineField.classList.add('is-invalid');
+                        // Tambahkan pesan error di bawah field
+                        let errorMsg = document.getElementById('deadline-error');
+                        if (!errorMsg) {
+                            errorMsg = document.createElement('div');
+                            errorMsg.id = 'deadline-error';
+                            errorMsg.className = 'invalid-feedback';
+                            errorMsg.textContent = 'Deadline tidak boleh lebih awal dari tanggal mulai!';
+                            deadlineField.parentNode.appendChild(errorMsg);
+                        }
+                    } else {
+                        deadlineField.classList.remove('is-invalid');
+                        const errorMsg = document.getElementById('deadline-error');
+                        if (errorMsg) {
+                            errorMsg.remove();
+                        }
+                    }
+                }
+            }
             
             // Fix untuk input date di Safari
             const dateInputs = document.querySelectorAll('input[type="date"]');
