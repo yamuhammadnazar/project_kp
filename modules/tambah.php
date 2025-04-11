@@ -1,6 +1,5 @@
 <?php
 include '../auth/koneksi.php';
-
 if (!isset($_SESSION["username"])) {
     header("Location: ../auth/login.php");
     exit();
@@ -24,8 +23,8 @@ if ($user_role === 'admin') {
 $query = "SELECT username FROM users WHERE role='anggota'";
 $result = mysqli_query($conn, $query);
 
-// Get list of admin users
-$admin_query = "SELECT username FROM users WHERE role='admin'";
+// Get list of admin users with their IDs
+$admin_query = "SELECT id, username FROM users WHERE role='admin'";
 $admin_result = mysqli_query($conn, $admin_query);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -40,23 +39,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $penanggung_jawab = $current_username;
     
     // Get the admin who assigned the task
-    $pemberi_tugas = mysqli_real_escape_string($conn, $_POST["pemberi_tugas"]);
-
-    $query = "INSERT INTO tugas_media (judul, platform, deskripsi, status, tanggal_mulai, deadline, penanggung_jawab, pemberi_tugas) 
-              VALUES ('$judul', '$platform', '$deskripsi', '$status', '$tanggal_mulai', '$deadline', '$penanggung_jawab', '$pemberi_tugas')";
+    $pemberi_tugas = 'admin'; // Role is 'admin'
     
-    if (mysqli_query($conn, $query)) {
-        // Redirect to anggota_dashboard.php after successful insertion
-        header("Location: ../dashboard/anggota_dashboard.php?success=1");
-        exit();
+    // Get admin ID from the form
+    if (isset($_POST["admin_id"]) && !empty($_POST["admin_id"])) {
+        $pemberi_tugas_id = (int)$_POST["admin_id"];
+        
+        // Verify that this ID exists in the users table
+        $check_admin = "SELECT id FROM users WHERE id = $pemberi_tugas_id AND role = 'admin'";
+        $admin_check_result = mysqli_query($conn, $check_admin);
+        
+        if (mysqli_num_rows($admin_check_result) == 0) {
+            $error_message = "❌ Admin tidak valid!";
+            $pemberi_tugas_id = null;
+        }
     } else {
-        $error_message = "❌ Gagal menambahkan tugas!";
+        $error_message = "❌ Pilih admin pemberi tugas!";
+        $pemberi_tugas_id = null;
+    }
+    
+    // Only proceed if we have a valid admin ID
+    if ($pemberi_tugas_id) {
+        $query = "INSERT INTO tugas_media (judul, platform, deskripsi, status, tanggal_mulai, deadline, penanggung_jawab, pemberi_tugas, pemberi_tugas_id)
+                  VALUES ('$judul', '$platform', '$deskripsi', '$status', '$tanggal_mulai', '$deadline', '$penanggung_jawab', '$pemberi_tugas', $pemberi_tugas_id)";
+        
+        if (mysqli_query($conn, $query)) {
+            // Redirect to anggota_dashboard.php after successful insertion
+            header("Location: ../dashboard/anggota_dashboard.php?success=1");
+            exit();
+        } else {
+            $error_message = "❌ Gagal menambahkan tugas: " . mysqli_error($conn);
+        }
     }
 }
 
 // Return URL is always anggota dashboard since only anggota can access this page
 $return_url = "../dashboard/anggota_dashboard.php";
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -190,21 +211,21 @@ $return_url = "../dashboard/anggota_dashboard.php";
                     
                     <!-- Field untuk memilih admin pemberi tugas -->
                     <div class="mb-4">
-                        <label for="pemberi_tugas" class="form-label">Admin Pemberi Tugas</label>
-                        <select class="form-select" id="pemberi_tugas" name="pemberi_tugas" required>
+                        <label for="admin_id" class="form-label">Admin Pemberi Tugas</label>
+                        <select class="form-select" id="admin_id" name="admin_id" required>
                             <option value="" disabled selected>Pilih admin pemberi tugas</option>
-                            <?php 
+                            <?php
                             mysqli_data_seek($admin_result, 0); // Reset result pointer
-                            while ($admin = mysqli_fetch_assoc($admin_result)) { 
+                            while ($admin = mysqli_fetch_assoc($admin_result)) {
                             ?>
-                                <option value="<?php echo htmlspecialchars($admin['username']); ?>">
+                                <option value="<?php echo $admin['id']; ?>">
                                     <?php echo htmlspecialchars($admin['username']); ?>
                                 </option>
                             <?php } ?>
                         </select>
                         <small class="text-muted">Pilih admin yang memberikan tugas ini kepada Anda.</small>
                     </div>
-                    
+                                        
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-2"></i> Tambah Tugas

@@ -18,9 +18,12 @@ $link_drive = mysqli_real_escape_string($conn, $_POST['link_drive']);
 $penanggung_jawab = mysqli_real_escape_string($conn, $_POST['penanggung_jawab']);
 $pemberi_tugas = mysqli_real_escape_string($conn, $_POST['pemberi_tugas']);
 
-// Query insert
-$query = "INSERT INTO tugas_media (judul, platform, deskripsi, status, tanggal_mulai, deadline, link_drive, penanggung_jawab, pemberi_tugas) 
-          VALUES ('$judul', '$platform', '$deskripsi', '$status', '$tanggal_mulai', '$deadline', '$link_drive', '$penanggung_jawab', '$pemberi_tugas')";
+// Tambahkan pemberi_tugas_id dari session
+$pemberi_tugas_id = $_SESSION["user_id"];
+
+// Query insert dengan pemberi_tugas_id
+$query = "INSERT INTO tugas_media (judul, platform, deskripsi, status, tanggal_mulai, deadline, link_drive, penanggung_jawab, pemberi_tugas, pemberi_tugas_id)
+          VALUES ('$judul', '$platform', '$deskripsi', '$status', '$tanggal_mulai', '$deadline', '$link_drive', '$penanggung_jawab', '$pemberi_tugas', $pemberi_tugas_id)";
 
 // Eksekusi query
 if(mysqli_query($conn, $query)) {

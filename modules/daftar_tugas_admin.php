@@ -1,24 +1,36 @@
 <?php
 include '../auth/koneksi.php';
 
-// Cek session dan role
-if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "admin") {
+// Cek session
+if (!isset($_SESSION["username"])) {
     header("Location: ../auth/login.php");
     exit();
 }
 
+// Query dengan JOIN
+$query = "SELECT t.*, u.username as pemberi_username 
+          FROM tugas_media t
+          LEFT JOIN users u ON t.pemberi_tugas_id = u.id
+          ORDER BY t.deadline ASC";
+          
+$result = mysqli_query($conn, $query);
+
 $username = $_SESSION["username"];
 
 // Query untuk mendapatkan tugas yang diberikan oleh admin yang login
-$query_tugas_diberikan = "SELECT * FROM tugas_media 
-                          WHERE pemberi_tugas = 'admin' 
-                          ORDER BY deadline ASC";
+$query_tugas_diberikan = "SELECT t.*, u.username as pemberi_username 
+                          FROM tugas_media t
+                          LEFT JOIN users u ON t.pemberi_tugas_id = u.id
+                          WHERE t.pemberi_tugas = 'admin' 
+                          ORDER BY t.deadline ASC";
 $result_tugas_diberikan = mysqli_query($conn, $query_tugas_diberikan);
 
 // Query untuk mendapatkan tugas yang diterima dari kabid
-$query_tugas_dari_kabid = "SELECT * FROM tugas_media 
-                           WHERE pemberi_tugas = 'kabid' 
-                           ORDER BY deadline ASC";
+$query_tugas_dari_kabid = "SELECT t.*, u.username as pemberi_username 
+                           FROM tugas_media t
+                           LEFT JOIN users u ON t.pemberi_tugas_id = u.id
+                           WHERE t.pemberi_tugas = 'kabid' 
+                           ORDER BY t.deadline ASC";
 $result_tugas_dari_kabid = mysqli_query($conn, $query_tugas_dari_kabid);
 
 // Hitung jumlah tugas
@@ -642,101 +654,110 @@ function hitungSisaHari($deadline) {
                             </button>
                         </li>
                     </ul>
-                    
+
                     <div class="tab-content" id="taskTabsContent">
-                        <!-- Tab Semua Tugas -->
-                        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
-                            <div class="card">
-                                <div class="card-body">
-                                    <?php if (isset($_SESSION['success'])): ?>
-                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                            <?php echo $_SESSION['success']; ?>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                        <?php unset($_SESSION['success']); ?>
-                                    <?php endif; ?>
-                                    
-                                    <?php if (isset($_SESSION['error'])): ?>
-                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                            <?php echo $_SESSION['error']; ?>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                        <?php unset($_SESSION['error']); ?>
-                                    <?php endif; ?>
-                                    
-                                    <div class="table-responsive">
-                                        <table class="table table-hover" id="allTasksTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Judul</th>
-                                                    <th>Platform</th>
-                                                    <th>Penanggung Jawab</th>
-                                                    <th>Status</th>
-                                                    <th>Deadline</th>
-                                                    <th>Sisa Waktu</th>
-                                                    <th>Pemberi Tugas</th>
-                                                    <th>Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                // Gabungkan kedua hasil query
-                                                $all_tasks = array();
-                                                
-                                                // Reset pointer hasil query
-                                                mysqli_data_seek($result_tugas_diberikan, 0);
-                                                mysqli_data_seek($result_tugas_dari_kabid, 0);
-                                                
-                                                // Tambahkan tugas yang diberikan admin
-                                                while ($row = mysqli_fetch_assoc($result_tugas_diberikan)) {
-                                                    $all_tasks[] = $row;
-                                                }
-                                                
-                                                // Tambahkan tugas dari kabid
-                                                while ($row = mysqli_fetch_assoc($result_tugas_dari_kabid)) {
-                                                    $all_tasks[] = $row;
-                                                }
-                                                
-                                                // Urutkan berdasarkan deadline
-                                                usort($all_tasks, function($a, $b) {
-                                                    return strtotime($a['deadline']) - strtotime($b['deadline']);
-                                                });
-                                                
-                                                $no = 1;
-                                                foreach ($all_tasks as $task):
-                                                    $badge_class = getBadgeClass($task['status']);
-                                                    $sisa_hari = hitungSisaHari($task['deadline']);
-                                                    $pemberi = ($task['pemberi_tugas'] == 'admin') ? 'Admin' : 'Kabid';
-                                                ?>
-                                                <tr>
-                                                    <td><?php echo $no++; ?></td>
-                                                    <td><?php echo htmlspecialchars($task['judul']); ?></td>
-                                                    <td><?php echo htmlspecialchars($task['platform']); ?></td>
-                                                    <td><?php echo htmlspecialchars($task['penanggung_jawab']); ?></td>
-                                                    <td><span class="badge <?php echo $badge_class; ?>"><?php echo $task['status']; ?></span></td>
-                                                    <td><?php echo date('d/m/Y', strtotime($task['deadline'])); ?></td>
-                                                    <td><?php echo $sisa_hari; ?></td>
-                                                    <td><?php echo $pemberi; ?></td>
-                                                    <td>
-                                                        <a href="../modules/edit_tugas.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-primary btn-action">
-                                                            <i class="bi bi-pencil-square"></i>
-                                                        </a>
-                                                        <a href="../modules/catatan_tugas.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-info btn-action">
-                                                            <i class="bi bi-chat-left-text"></i>
-                                                        </a>
-                                                        <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $task['id']; ?>">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    <!-- Tab Semua Tugas -->
+    <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+        <div class="card">
+            <div class="card-body">
+                <?php if (isset($_SESSION['success'])): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <?php echo $_SESSION['success']; ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <?php unset($_SESSION['success']); ?>
+                <?php endif; ?>
+                
+                <?php if (isset($_SESSION['error'])): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <?php echo $_SESSION['error']; ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <?php unset($_SESSION['error']); ?>
+                <?php endif; ?>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover" id="allTasksTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Judul</th>
+                                <th>Platform</th>
+                                <th>Penanggung Jawab</th>
+                                <th>Status</th>
+                                <th>Deadline</th>
+                                <th>Sisa Waktu</th>
+                                <th>Pemberi Tugas</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Gabungkan kedua hasil query
+                            $all_tasks = array();
+                            
+                            // Reset pointer hasil query
+                            mysqli_data_seek($result_tugas_diberikan, 0);
+                            mysqli_data_seek($result_tugas_dari_kabid, 0);
+                            
+                            // Tambahkan tugas yang diberikan admin
+                            while ($row = mysqli_fetch_assoc($result_tugas_diberikan)) {
+                                $all_tasks[] = $row;
+                            }
+                            
+                            // Tambahkan tugas dari kabid
+                            while ($row = mysqli_fetch_assoc($result_tugas_dari_kabid)) {
+                                $all_tasks[] = $row;
+                            }
+                            
+                            // Urutkan berdasarkan deadline
+                            usort($all_tasks, function($a, $b) {
+                                return strtotime($a['deadline']) - strtotime($b['deadline']);
+                            });
+                            
+                            $no = 1;
+                            foreach ($all_tasks as $task):
+                                $badge_class = getBadgeClass($task['status']);
+                                $sisa_hari = hitungSisaHari($task['deadline']);
+                                
+                                // Tampilkan username pemberi tugas dari hasil JOIN
+                                if ($task['pemberi_tugas'] == 'admin') {
+                                    $pemberi = isset($task['pemberi_username']) ? htmlspecialchars($task['pemberi_username']) : 'Admin';
+                                } else {
+                                    $pemberi = 'Kabid';
+                                }
+                            ?>
+                            <tr>
+                                <td><?php echo $no++; ?></td>
+                                <td><?php echo htmlspecialchars($task['judul']); ?></td>
+                                <td><?php echo htmlspecialchars($task['platform']); ?></td>
+                                <td><?php echo htmlspecialchars($task['penanggung_jawab']); ?></td>
+                                <td><span class="badge <?php echo $badge_class; ?>"><?php echo $task['status']; ?></span></td>
+                                <td><?php echo date('d/m/Y', strtotime($task['deadline'])); ?></td>
+                                <td><?php echo $sisa_hari; ?></td>
+                                <td><?php echo $pemberi; ?></td>
+                                <td>
+                                    <a href="../modules/edit.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-primary btn-action">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a href="../views/catatan_admin.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-info btn-action">
+                                        <i class="bi bi-chat-left-text"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $task['id']; ?>">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    
                         
                         <!-- Tab Tugas Diberikan -->
                         <div class="tab-pane fade" id="given" role="tabpanel" aria-labelledby="given-tab">

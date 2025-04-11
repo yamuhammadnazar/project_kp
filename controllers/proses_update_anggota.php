@@ -17,6 +17,11 @@ $tanggal_mulai = mysqli_real_escape_string($conn, $_POST['tanggal_mulai']);
 $deadline = mysqli_real_escape_string($conn, $_POST['deadline']);
 $link_drive = mysqli_real_escape_string($conn, $_POST['link_drive']);
 
+// Pastikan tidak mengubah pemberi_tugas_id
+$query_check = "SELECT pemberi_tugas, pemberi_tugas_id FROM tugas_media WHERE id = $id";
+$result_check = mysqli_query($conn, $query_check);
+$task = mysqli_fetch_assoc($result_check);
+
 // Update query
 $query = "UPDATE tugas_media SET 
             judul = '$judul',

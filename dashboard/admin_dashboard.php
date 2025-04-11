@@ -1034,7 +1034,7 @@ $nama_bulan = [
                                             </td>
                                             <td><span class="badge <?php echo $status_class; ?>"><?php echo $row['status']; ?></span></td>
                                             <td>
-                                                <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning" title="Edit Tugas">
+                                                <a href="../modules/edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning" title="Edit Tugas">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                                 <a href="../views/catatan_admin.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
