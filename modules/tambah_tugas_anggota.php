@@ -8,22 +8,22 @@ if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "admin") {
 
 $username = $_SESSION["username"];
 
-// Periksa apakah tabel tugas sudah ada
-$table_exists_query = "SHOW TABLES LIKE 'tugas'";
+// Periksa apakah tabel tugas_media sudah ada
+$table_exists_query = "SHOW TABLES LIKE 'tugas_media'";
 $table_exists_result = mysqli_query($conn, $table_exists_query);
 $table_exists = mysqli_num_rows($table_exists_result) > 0;
 
 // Query untuk mendapatkan daftar anggota
 if ($table_exists) {
-    // Jika tabel tugas ada, ambil data dengan jumlah tugas
+    // Jika tabel tugas_media ada, ambil data dengan jumlah tugas
     $query_anggota = "SELECT u.username, COUNT(t.id) as jumlah_tugas
                       FROM users u
-                      LEFT JOIN tugas t ON u.username = t.penanggung_jawab AND t.status != 'Selesai'
+                      LEFT JOIN tugas_media t ON u.username = t.penanggung_jawab AND t.status != 'Selesai'
                      WHERE u.role = 'anggota'
                       GROUP BY u.username
                      ORDER BY jumlah_tugas ASC";
 } else {
-    // Jika tabel tugas belum ada, ambil hanya username
+    // Jika tabel tugas_media belum ada, ambil hanya username
     $query_anggota = "SELECT username, 0 as jumlah_tugas FROM users WHERE role = 'anggota'";
 }
 
@@ -525,7 +525,7 @@ if (!$anggota_list_result) {
                             </div>
                             <?php unset($_SESSION['errors']); ?>
                         <?php endif; ?>
-                        
+                            
                             <!-- Nav tabs untuk form yang lebih ringkas -->
                             <ul class="nav nav-tabs" id="taskTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
@@ -613,7 +613,7 @@ if (!$anggota_list_result) {
                                                 <input type="date" class="form-control" id="deadline" name="deadline" required>
                                             </div>
                                             <!-- Field link_drive dihapus karena akan diisi oleh anggota -->
-                                            <input type="hidden" name="pemberi_tugas" value="<?php echo $username; ?>">
+                                            <input type="hidden" name="pemberi_tugas" value="admin">
                                             <input type="hidden" name="link_drive" value=""> <!-- Tetap kirim nilai kosong -->
                                             <div class="col-12 d-flex mt-3">
                                                 <button type="button" class="btn btn-secondary prev-tab me-2">
@@ -730,14 +730,20 @@ if (!$anggota_list_result) {
                     let missingFields = [];
                     
                     requiredFields.forEach(field => {
+
                         if (!field.value.trim()) {
                             isValid = false;
                             field.classList.add('is-invalid');
-                            if (!firstInvalidField) firstInvalidField = field;
+                            if (!firstInvalidField) {
+                                firstInvalidField = field;
+                            }
                             
                             // Dapatkan label untuk field ini
-                            const label = field.previousElementSibling ? field.previousElementSibling.textContent : field.getAttribute('placeholder');
-                            missingFields.push(label);
+                            const fieldId = field.id;
+                            const label = document.querySelector(`label[for="${fieldId}"]`);
+                            if (label) {
+                                missingFields.push(label.textContent);
+                            }
                         } else {
                             field.classList.remove('is-invalid');
                         }
@@ -747,178 +753,117 @@ if (!$anggota_list_result) {
                         // Tampilkan pesan error dengan SweetAlert2
                         Swal.fire({
                             title: 'Form Belum Lengkap',
-                            html: `
-                                <div class="text-start">
-                                    <p>Mohon lengkapi field berikut:</p>
-                                    <ul class="text-danger">
-                                        ${missingFields.map(field => `<li>${field}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            `,
+                            html: `Silakan lengkapi field berikut:<br><ul><li>${missingFields.join('</li><li>')}</li></ul>`,
                             icon: 'warning',
-                            confirmButtonText: 'Mengerti',
+                            confirmButtonText: 'OK',
                             confirmButtonColor: '#4e73df'
-                        }).then((result) => {
-                            // Focus ke field pertama yang belum diisi
-                            if (firstInvalidField) firstInvalidField.focus();
                         });
+                        
+                        // Focus ke field pertama yang invalid
+                        if (firstInvalidField) {
+                            firstInvalidField.focus();
+                        }
+                        
                         return;
                     }
                     
-                    // Jika semua valid, pindah ke tab berikutnya
-                    const detailsTab = new bootstrap.Tab(document.getElementById('details-tab'));
-                    detailsTab.show();
+                    // Jika valid, pindah ke tab berikutnya
+                    const detailsTab = document.getElementById('details-tab');
+                    bootstrap.Tab.getOrCreateInstance(detailsTab).show();
                 });
             });
             
             prevTabButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    const infoTab = new bootstrap.Tab(document.getElementById('info-tab'));
-                    infoTab.show();
+                    const infoTab = document.getElementById('info-tab');
+                    bootstrap.Tab.getOrCreateInstance(infoTab).show();
                 });
             });
             
-            // Form validation
-            const form = document.getElementById('taskForm');
-            form.addEventListener('submit', function(event) {
-                // Validasi tanggal
-                const tanggalMulai = new Date(document.getElementById('tanggal_mulai').value);
-                const deadline = new Date(document.getElementById('deadline').value);
-                
-                // Cek apakah semua field yang required sudah diisi
-                const requiredFields = form.querySelectorAll('[required]');
+            // Form submission dengan validasi
+            const taskForm = document.getElementById('taskForm');
+            taskForm.addEventListener('submit', function(e) {
+                const allRequiredFields = taskForm.querySelectorAll('[required]');
                 let isValid = true;
                 let firstInvalidField = null;
                 let missingFields = [];
                 
-                requiredFields.forEach(field => {
+                allRequiredFields.forEach(field => {
                     if (!field.value.trim()) {
                         isValid = false;
                         field.classList.add('is-invalid');
-                        if (!firstInvalidField) firstInvalidField = field;
+                        if (!firstInvalidField) {
+                            firstInvalidField = field;
+                        }
                         
                         // Dapatkan label untuk field ini
-                        const label = field.previousElementSibling ? field.previousElementSibling.textContent : field.getAttribute('placeholder');
-                        missingFields.push(label);
+                        const fieldId = field.id;
+                        const label = document.querySelector(`label[for="${fieldId}"]`);
+                        if (label) {
+                            missingFields.push(label.textContent);
+                        }
                     } else {
                         field.classList.remove('is-invalid');
                     }
                 });
                 
+                // Validasi tanggal
+                const tanggalMulai = document.getElementById('tanggal_mulai').value;
+                const deadline = document.getElementById('deadline').value;
+                
+                if (tanggalMulai && deadline && new Date(deadline) < new Date(tanggalMulai)) {
+                    isValid = false;
+                    document.getElementById('deadline').classList.add('is-invalid');
+                    
+                    Swal.fire({
+                        title: 'Tanggal Tidak Valid',
+                        text: 'Deadline tidak boleh lebih awal dari tanggal mulai',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#4e73df'
+                    });
+                    
+                    return false;
+                }
+                
                 if (!isValid) {
-                    event.preventDefault();
+                    e.preventDefault();
                     
                     // Tampilkan pesan error dengan SweetAlert2
                     Swal.fire({
                         title: 'Form Belum Lengkap',
-                        html: `
-                            <div class="text-start">
-                                <p>Mohon lengkapi field berikut:</p>
-                                <ul class="text-danger">
-                                    ${missingFields.map(field => `<li>${field}</li>`).join('')}
-                                </ul>
-                            </div>
-                        `,
+                        html: `Silakan lengkapi field berikut:<br><ul><li>${missingFields.join('</li><li>')}</li></ul>`,
                         icon: 'warning',
-                        confirmButtonText: 'Mengerti',
+                        confirmButtonText: 'OK',
                         confirmButtonColor: '#4e73df'
-                    }).then((result) => {
-                        // Focus ke field pertama yang belum diisi
-                        if (firstInvalidField) firstInvalidField.focus();
-                        
-                        // Jika field yang error ada di tab pertama, pindah ke tab pertama
-                        if (firstInvalidField.closest('#info')) {
-                            const infoTab = new bootstrap.Tab(document.getElementById('info-tab'));
-                            infoTab.show();
-                        } else if (firstInvalidField.closest('#details')) {
-                            const detailsTab = new bootstrap.Tab(document.getElementById('details-tab'));
-                            detailsTab.show();
-                        }
                     });
                     
-                    return;
-                }
-                
-                // Validasi tanggal
-                if (deadline < tanggalMulai) {
-                    event.preventDefault();
-                    
-                    Swal.fire({
-                        title: 'Tanggal Tidak Valid',
-                        text: 'Deadline tidak boleh lebih awal dari tanggal mulai!',
-                        icon: 'error',
-                        confirmButtonText: 'Mengerti',
-                        confirmButtonColor: '#4e73df'
-                    }).then((result) => {
-                        document.getElementById('deadline').focus();
+                    // Pindah ke tab yang berisi field invalid pertama
+                    if (firstInvalidField) {
+                        const tabId = firstInvalidField.closest('.tab-pane').id;
+                        const tabButton = document.querySelector(`[data-bs-target="#${tabId}"]`);
+                        bootstrap.Tab.getOrCreateInstance(tabButton).show();
                         
-                        // Pindah ke tab yang berisi field tanggal
-                        const detailsTab = new bootstrap.Tab(document.getElementById('details-tab'));
-                        detailsTab.show();
-                    });
+                        // Focus ke field pertama yang invalid
+                        setTimeout(() => {
+                            firstInvalidField.focus();
+                        }, 500);
+                    }
+                    
+                    return false;
                 }
-            });
-            
-            // Tambahkan validasi real-time untuk semua field required
-            const allRequiredFields = document.querySelectorAll('[required]');
-            allRequiredFields.forEach(field => {
-                field.addEventListener('blur', function() {
-                    if (!this.value.trim()) {
-                        this.classList.add('is-invalid');
-                    } else {
-                        this.classList.remove('is-invalid');
+                
+                // Jika valid, tampilkan loading indicator
+                Swal.fire({
+                    title: 'Menyimpan Tugas',
+                    text: 'Mohon tunggu sebentar...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
                     }
                 });
                 
-                field.addEventListener('input', function() {
-                    if (this.value.trim()) {
-                        this.classList.remove('is-invalid');
-                    }
-                });
-            });
-            
-            // Validasi tanggal secara real-time
-            const deadlineField = document.getElementById('deadline');
-            const tanggalMulaiField = document.getElementById('tanggal_mulai');
-            
-            deadlineField.addEventListener('change', validateDates);
-            tanggalMulaiField.addEventListener('change', validateDates);
-            
-            function validateDates() {
-                const tanggalMulai = new Date(tanggalMulaiField.value);
-                const deadline = new Date(deadlineField.value);
-                
-                if (tanggalMulaiField.value && deadlineField.value) {
-                    if (deadline < tanggalMulai) {
-                        deadlineField.classList.add('is-invalid');
-                        // Tambahkan pesan error di bawah field
-                        let errorMsg = document.getElementById('deadline-error');
-                        if (!errorMsg) {
-                            errorMsg = document.createElement('div');
-                            errorMsg.id = 'deadline-error';
-                            errorMsg.className = 'invalid-feedback';
-                            errorMsg.textContent = 'Deadline tidak boleh lebih awal dari tanggal mulai!';
-                            deadlineField.parentNode.appendChild(errorMsg);
-                        }
-                    } else {
-                        deadlineField.classList.remove('is-invalid');
-                        const errorMsg = document.getElementById('deadline-error');
-                        if (errorMsg) {
-                            errorMsg.remove();
-                        }
-                    }
-                }
-            }
-            
-            // Fix untuk input date di Safari
-            const dateInputs = document.querySelectorAll('input[type="date"]');
-            dateInputs.forEach(input => {
-                input.addEventListener('click', function() {
-                    if (this.type === 'date' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                        this.type = 'date';
-                        this.click();
-                    }
-                });
+                return true;
             });
         });
     </script>

@@ -1,13 +1,10 @@
 <?php
 include 'koneksi.php';
-
 if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "admin") {
     header("Location: login.php");
     exit();
 }
-
 $username = $_SESSION["username"];
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_username = mysqli_real_escape_string($conn, $_POST["username"]);
     $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
@@ -23,7 +20,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -369,6 +365,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-bottom: 1rem;
             border: 1px dashed #bac8f3;
         }
+        
+        /* Styling untuk cards berdampingan */
+        .info-card, .form-card {
+            height: 100%;
+        }
+        
+        .info-card .card-body {
+            height: calc(100% - 56px); /* Adjust for card header height */
+        }
+        
+        /* Styling untuk info card content */
+        .info-alert {
+            padding: 0.75rem;
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+        
+        .info-alert h5 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-alert ul {
+            padding-left: 1.25rem;
+        }
+        
+        .info-alert li {
+            margin-bottom: 0.35rem;
+            line-height: 1.4;
+        }
+        
+        /* Styling untuk form content */
+        .form-card .card-body {
+            padding: 1rem;
+        }
+        
+        .form-card .role-badge {
+            padding: 0.35rem 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+        }
+        
+        .form-card small.text-muted {
+            font-size: 0.75rem;
+        }
+        ::placeholder {
+            font-size: 0.8rem;
+        }
+
     </style>
 </head>
 <body>
@@ -398,6 +443,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <span>Tambah Anggota</span>
                 </a>
                 <a href="../auth/logout.php" class="list-group-item">
+                    <i class="bi bi-box-arrow-
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Keluar</span>
                 </a>
@@ -430,14 +476,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     
                     <div class="row">
-                        <div class="col-lg-8 mx-auto">
-                            <!-- Informasi tambahan - dipindahkan ke atas -->
-                            <div class="card mb-4">
+                        <!-- Alert Messages - Moved outside the cards to be full width -->
+                        <?php if(isset($_SESSION['success'])): ?>
+                            <div class="col-12 mb-3">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php if(isset($_SESSION['error'])): ?>
+                            <div class="col-12 mb-3">
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <!-- Informasi tambahan - now in a column -->
+                        <div class="col-lg-5 mb-4">
+                            <div class="card info-card h-100">
                                 <div class="card-header d-flex align-items-center">
                                     <i class="bi bi-info-circle me-2"></i> Informasi
                                 </div>
                                 <div class="card-body">
-                                    <div class="alert alert-info mb-0">
+                                    <div class="alert alert-info info-alert mb-0">
                                         <h5><i class="bi bi-lightbulb me-2"></i>Petunjuk Penambahan Anggota</h5>
                                         <ul class="mb-0">
                                             <li>Anggota yang ditambahkan akan memiliki akses ke dashboard anggota.</li>
@@ -448,37 +515,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Form Tambah Anggota -->
-                            <div class="card">
+                        </div>
+                        
+                        <!-- Form Tambah Anggota - now in a column -->
+                        <div class="col-lg-7 mb-4">
+                            <div class="card form-card h-100">
                                 <div class="card-header d-flex align-items-center">
                                     <i class="bi bi-person-plus me-2"></i> Form Tambah Anggota
                                 </div>
-                                <div class="card-body form-wide">
-                                    <!-- Alert Messages -->
-                                    <?php if(isset($_SESSION['success'])): ?>
-                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                            <i class="bi bi-check-circle me-2"></i>
-                                            <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <?php if(isset($_SESSION['error'])): ?>
-                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                            <i class="bi bi-exclamation-triangle me-2"></i>
-                                            <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                    <?php endif; ?>
-                                    
+                                <div class="card-body">
                                     <div class="role-badge">
                                         <i class="bi bi-shield-check me-2"></i> Peran: Anggota
                                     </div>
                                     
                                     <form method="POST" action="">
-                                        <div class="row mb-4">
-                                            <div class="col-md-6 mb-3">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6 mb-2">
                                                 <label for="username" class="form-label">Username</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="bi bi-person"></i></span>
@@ -487,7 +539,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                 <small class="text-muted">Username harus unik dan akan digunakan untuk login.</small>
                                             </div>
                                             
-                                            <div class="col-md-6 mb-3">
+                                            <div class="col-md-6 mb-2">
                                                 <label for="password" class="form-label">Password</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="bi bi-key"></i></span>
@@ -503,15 +555,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         <!-- Input hidden untuk role -->
                                         <input type="hidden" name="role" value="anggota">
                                         
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
+                                        <div class="row mt-3">
+                                            <div class="col-md-6 mb-2">
                                                 <div class="d-grid">
                                                     <button type="submit" class="btn btn-primary">
                                                         <i class="bi bi-person-plus me-2"></i>Tambah Anggota
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6 mb-3">
+                                            <div class="col-md-6 mb-2">
                                                 <div class="d-grid">
                                                     <a href="../dashboard/admin_dashboard.php" class="btn btn-outline-secondary">
                                                         <i class="bi bi-arrow-left me-2"></i>Kembali ke Dashboard
@@ -629,4 +681,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </script>
 </body>
 </html>
-

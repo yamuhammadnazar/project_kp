@@ -57,6 +57,7 @@ $result = mysqli_query($conn, $query);
 
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,9 +71,824 @@ $result = mysqli_query($conn, $query);
     <!-- Animate.css untuk animasi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/anggota/main.css">
-    <link rel="stylesheet" href="../assets/css/anggota/daftar_tugas_anggota.css">
-   
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+            --topbar-height: 60px;
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --transition-speed: 0.3s;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fc;
+            overflow-x: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        body.loaded {
+            opacity: 1;
+        }
+        
+        #wrapper {
+            display: flex;
+        }
+        
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
+            transition: all var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        #sidebar-wrapper.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+        
+        #sidebar-wrapper .sidebar-heading {
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        #sidebar-wrapper.collapsed .sidebar-heading {
+            font-size: 0;
+        }
+        
+        #sidebar-wrapper.collapsed .sidebar-heading::before {
+            content: "MA";
+            font-size: 1.2rem;
+        }
+        
+        #sidebar-wrapper .list-group {
+            width: var(--sidebar-width);
+        }
+        
+        #sidebar-wrapper.collapsed .list-group {
+            width: var(--sidebar-collapsed-width);
+        }
+        
+        #sidebar-wrapper .list-group-item {
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #sidebar-wrapper .list-group-item:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background-color: white;
+            transform: translateX(-3px);
+            transition: transform 0.2s;
+        }
+        
+        #sidebar-wrapper .list-group-item:hover:before {
+            transform: translateX(0);
+        }
+        
+        #sidebar-wrapper .list-group-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        #sidebar-wrapper .list-group-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        #sidebar-wrapper .list-group-item.active:before {
+            transform: translateX(0);
+        }
+        
+        #sidebar-wrapper .list-group-item i {
+            margin-right: 1rem;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        #sidebar-wrapper.collapsed .list-group-item span {
+            display: none;
+        }
+        
+        #sidebar-wrapper.collapsed .list-group-item i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+        
+        #content-wrapper {
+            flex: 1;
+            min-width: 0;
+            background-color: #f8f9fc;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .topbar {
+            height: var(--topbar-height);
+            background-color: white;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .topbar .navbar-brand {
+            display: none;
+        }
+        
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            color: #4e73df;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .toggle-sidebar:hover {
+            transform: rotate(90deg);
+        }
+        
+        .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info .username {
+            margin-right: 1rem;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 2px;
+        }
+        
+        .user-info .username:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #4e73df;
+            transition: width 0.3s ease;
+        }
+        
+        .user-info .username:hover:after {
+            width: 100%;
+        }
+        
+        .main-content {
+            padding: 1.5rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Perbaikan untuk tabel */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .table th {
+            background-color: #f8f9fc;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            border-bottom: 2px solid #e3e6f0;
+            white-space: nowrap;
+        }
+        
+        .table td {
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            border-top: 1px solid #e3e6f0;
+        }
+        
+        /* Mengatur lebar kolom */
+        .table th.col-judul, .table td.col-judul {
+            min-width: 180px;
+            max-width: 200px;
+        }
+        
+        .table th.col-platform, .table td.col-platform {
+            min-width: 100px;
+            width: 10%;
+        }
+        
+        .table th.col-deskripsi, .table td.col-deskripsi {
+            min-width: 200px;
+            max-width: 300px;
+        }
+        
+        .table th.col-status, .table td.col-status {
+            min-width: 120px;
+            width: 10%;
+        }
+        
+        .table th.col-tanggal, .table td.col-tanggal {
+            min-width: 110px;
+            width: 10%;
+        }
+        
+        .table th.col-deadline, .table td.col-deadline {
+            min-width: 110px;
+            width: 10%;
+        }
+        
+        .table th.col-link, .table td.col-link {
+            min-width: 120px;
+            width: 12%;
+        }
+        
+        .table th.col-catatan, .table td.col-catatan {
+            min-width: 150px;
+            max-width: 200px;
+        }
+        
+        .table th.col-aksi, .table td.col-aksi {
+            min-width: 100px;
+            width: 8%;
+        }
+        
+        /* Menangani teks panjang */
+        .text-truncate-custom {
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+        
+        .text-wrap-custom {
+            white-space: normal;
+            word-break: break-word;
+            max-height: 4.5rem; /* sekitar 3 baris */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        /* Tooltip untuk teks yang terpotong */
+        .tooltip-inner {
+            max-width: 300px;
+            padding: 0.5rem 1rem;
+            text-align: left;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        .status-badge {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            display: inline-block;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .status-belum {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-proses {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .status-kirim {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .status-selesai {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-revisi {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .btn:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        
+        .btn-update {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        
+        .btn-update:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(46, 89, 217, 0.2);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(78, 115, 223, 0.1);
+            border-radius: 50%;
+            border-top-color: #4e73df;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .table-row-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        .table-row-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 300ms, transform 300ms;
+        }
+        
+        /* Highlight untuk baris dengan deadline dekat */
+        tr.deadline-warning td {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+        
+        tr.deadline-danger td {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        
+        /* Highlight untuk baris berdasarkan status */
+        tr.status-row-belum td {
+            background-color: rgba(198, 40, 40, 0.05);
+        }
+        
+        tr.status-row-proses td {
+            background-color: rgba(239, 108, 0, 0.05);
+        }
+        
+        tr.status-row-kirim td {
+            background-color: #e8eaf6; /* Warna latar belakang untuk baris dengan status kirim */
+        }
+        
+        tr.status-row-selesai td {
+            background-color: rgba(46, 125, 50, 0.05);
+        }
+        
+        tr.status-row-revisi td {
+            background-color: rgba(123, 31, 162, 0.05);
+        }
+        
+        /* Zebra striping yang lebih halus */
+        .table-hover tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        /* Styling untuk filter form */
+        .filter-form {
+            background-color: white;
+            border-radius: 0.35rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .filter-form:hover {
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+        }
+        
+        .filter-form .form-select {
+            border-radius: 0.25rem;
+            border: 1px solid #d1d3e2;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .filter-form .form-select:focus {
+            border-color: #bac8f3;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .filter-form .btn-filter {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-form .btn-filter:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+            transform: translateY(-2px);
+        }
+        
+        .filter-form .btn-reset {
+            background-color: #f8f9fc;
+            border-color: #d1d3e2;
+            color: #6e707e;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-form .btn-reset:hover {
+            background-color: #e3e6f0;
+            border-color: #cbd3e9;
+        }
+        
+        /* Pagination styling */
+        .pagination {
+            margin-top: 1rem;
+            margin-bottom: 0;
+            justify-content: center;
+        }
+        
+        .pagination .page-item .page-link {
+            color: #4e73df;
+            border: 1px solid #e3e6f0;
+            margin: 0 3px;
+            min-width: 36px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .pagination .page-item .page-link:hover {
+            background-color: #eaecf4;
+            border-color: #e3e6f0;
+            color: #2e59d9;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #b7b9cc;
+        }
+        
+        @media (max-width: 768px) {
+            #sidebar-wrapper {
+                position: fixed;
+                left: -250px;
+                height: 100%;
+                transition: left var(--transition-speed) ease;
+            }
+            
+            #sidebar-wrapper.show {
+                left: 0;
+            }
+            
+            #content-wrapper {
+                width: 100%;
+            }
+            
+            .topbar .navbar-brand {
+                display: block;
+            }
+            
+            .toggle-sidebar:hover {
+                transform: none;
+            }
+            
+            /* Penyesuaian tabel untuk mobile */
+            .table th, .table td {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .text-truncate-custom {
+                max-width: 150px;
+            }
+            
+            /* Penyesuaian filter form untuk mobile */
+            .filter-form .row {
+                flex-direction: column;
+            }
+            
+            .filter-form .col-md-3,
+            .filter-form .col-md-2 {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .filter-form .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+        /* Styling untuk badge deadline */
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .bg-danger {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+        /* Add these responsive styles at the end of your existing CSS */
+
+@media (max-width: 768px) {
+    /* Improve table responsiveness */
+    .table-responsive {
+        border: 0;
+    }
+    
+    .table {
+        display: block;
+        width: 100%;
+    }
+    
+    /* Make table scrollable horizontally */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Adjust column widths for mobile */
+    .table th.col-judul, .table td.col-judul,
+    .table th.col-platform, .table td.col-platform,
+    .table th.col-deskripsi, .table td.col-deskripsi,
+    .table th.col-status, .table td.col-status,
+    .table th.col-tanggal, .table td.col-tanggal,
+    .table th.col-deadline, .table td.col-deadline,
+    .table th.col-link, .table td.col-link,
+    .table th.col-catatan, .table td.col-catatan,
+    .table th.col-aksi, .table td.col-aksi {
+        min-width: auto;
+        white-space: normal;
+    }
+    
+    /* Adjust text truncation for mobile */
+    .text-truncate-custom {
+        max-width: 100px;
+    }
+    
+    .text-wrap-custom {
+        max-height: 3.6rem; /* about 2 lines */
+        -webkit-line-clamp: 2;
+    }
+    
+    /* Adjust filter form for mobile */
+    .filter-form .row {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    
+    .filter-form .col-md-3,
+    .filter-form .col-md-2 {
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+    
+    /* Improve sidebar behavior on mobile */
+    #sidebar-wrapper {
+        width: 250px;
+        position: fixed;
+        top: 0;
+        left: -250px;
+        height: 100%;
+        z-index: 1050;
+        transition: all 0.3s;
+        box-shadow: 3px 0 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    #sidebar-wrapper.show {
+        left: 0;
+    }
+    
+    /* Add overlay when sidebar is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1040;
+        opacity: 0;
+        transition: all 0.5s ease-in-out;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+    
+    /* Adjust buttons for mobile */
+    .btn {
+        padding: 0.375rem 0.5rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Adjust status badges for mobile */
+    .status-badge {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    /* Adjust pagination for mobile */
+    .pagination .page-item .page-link {
+        padding: 0.3rem 0.6rem;
+        min-width: 30px;
+    }
+    
+    /* Improve topbar for mobile */
+    .topbar {
+        padding: 0 0.5rem;
+    }
+    
+    .user-info .username {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+    }
+    
+    /* Adjust card padding for mobile */
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem;
+    }
+    
+    /* Improve main content padding */
+    .main-content {
+        padding: 1rem 0.5rem;
+    }
+    
+    /* Make filter buttons stack better on mobile */
+    .filter-form .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+    
+    /* Adjust heading sizes for mobile */
+    .h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 576px) {
+    .text-truncate-custom {
+        max-width: 80px;
+    }
+    
+    .table th, .table td {
+        padding: 0.5rem 0.3rem;
+        font-size: 0.8rem;
+    }
+    
+    .status-badge {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.65rem;
+    }
+    
+    /* Further reduce button size */
+    .btn-sm {
+        padding: 0.2rem 0.3rem;
+        font-size: 0.7rem;
+    }
+    
+    /* Adjust badge size */
+    .badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.3rem;
+    }
+}
+
+    </style>
 </head>
 <body>
     <!-- Loading Overlay -->

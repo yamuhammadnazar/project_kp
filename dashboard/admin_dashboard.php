@@ -14,31 +14,24 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 $anggota = isset($_GET['anggota']) ? $_GET['anggota'] : '';
 
-// Base query untuk tugas dari kabid
-$base_query_kabid = "FROM tugas_media WHERE penanggung_jawab = '$username' AND pemberi_tugas = 'kabid'";
-
-// Base query untuk tugas anggota
+// Base query untuk tugas anggota yang diberikan oleh admin
 $base_query_anggota = "FROM tugas_media WHERE pemberi_tugas = 'admin'";
 
 // Tambahkan filter jika ada
 if (!empty($bulan) && !empty($tahun)) {
     $filter_date = " AND MONTH(tanggal_mulai) = '$bulan' AND YEAR(tanggal_mulai) = '$tahun'";
-    $base_query_kabid .= $filter_date;
     $base_query_anggota .= $filter_date;
 } elseif (!empty($bulan)) {
     $filter_date = " AND MONTH(tanggal_mulai) = '$bulan'";
-    $base_query_kabid .= $filter_date;
     $base_query_anggota .= $filter_date;
 } elseif (!empty($tahun)) {
     $filter_date = " AND YEAR(tanggal_mulai) = '$tahun'";
-    $base_query_kabid .= $filter_date;
     $base_query_anggota .= $filter_date;
 }
 
 // Tambahkan filter status jika ada
 if (!empty($status)) {
     $filter_status = " AND status = '$status'";
-    $base_query_kabid .= $filter_status;
     $base_query_anggota .= $filter_status;
 }
 
@@ -47,25 +40,9 @@ if (!empty($anggota)) {
     $base_query_anggota .= " AND penanggung_jawab = '$anggota'";
 }
 
-// Query untuk tugas dari kabid
-$query_kabid = "SELECT * " . $base_query_kabid . " ORDER BY tanggal_mulai DESC";
-$result_kabid = mysqli_query($conn, $query_kabid);
-
 // Query untuk tugas anggota
 $query_anggota = "SELECT * " . $base_query_anggota . " ORDER BY tanggal_mulai DESC";
 $result_anggota = mysqli_query($conn, $query_anggota);
-
-// Menghitung statistik tugas kabid
-$stats_query_kabid = "SELECT 
-    COUNT(*) as total_tugas,
-    SUM(CASE WHEN status = 'Belum Dikerjakan' THEN 1 ELSE 0 END) as belum_dikerjakan,
-    SUM(CASE WHEN status = 'Sedang Dikerjakan' THEN 1 ELSE 0 END) as sedang_dikerjakan,
-    SUM(CASE WHEN status = 'Kirim' THEN 1 ELSE 0 END) as kirim,
-    SUM(CASE WHEN status = 'Revisi' THEN 1 ELSE 0 END) as revisi,
-    SUM(CASE WHEN status = 'Selesai' THEN 1 ELSE 0 END) as selesai
-    " . $base_query_kabid;
-$stats_result_kabid = mysqli_query($conn, $stats_query_kabid);
-$stats_kabid = mysqli_fetch_assoc($stats_result_kabid);
 
 // Menghitung statistik tugas anggota
 $stats_query_anggota = "SELECT 
@@ -79,13 +56,21 @@ $stats_query_anggota = "SELECT
 $stats_result_anggota = mysqli_query($conn, $stats_query_anggota);
 $stats_anggota = mysqli_fetch_assoc($stats_result_anggota);
 
-// Menghitung tugas yang melewati deadline
-$overdue_query = "SELECT COUNT(*) as total_overdue FROM tugas_media WHERE deadline < CURDATE() AND status != 'Selesai'";
+// Menghitung tugas yang melewati deadline (hanya untuk tugas anggota yang diberikan admin)
+$overdue_query = "SELECT COUNT(*) as total_overdue 
+                 FROM tugas_media 
+                 WHERE deadline < CURDATE() 
+                 AND status != 'Selesai' 
+                 AND pemberi_tugas = 'admin'";
 $overdue_result = mysqli_query($conn, $overdue_query);
 $overdue = mysqli_fetch_assoc($overdue_result)['total_overdue'];
 
-// Menghitung tugas yang deadline-nya dalam 3 hari ke depan
-$upcoming_query = "SELECT COUNT(*) as total_upcoming FROM tugas_media WHERE deadline BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) AND status != 'Selesai'";
+// Menghitung tugas yang deadline-nya dalam 3 hari ke depan (hanya untuk tugas anggota yang diberikan admin)
+$upcoming_query = "SELECT COUNT(*) as total_upcoming 
+                  FROM tugas_media 
+                  WHERE deadline BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) 
+                  AND status != 'Selesai' 
+                  AND pemberi_tugas = 'admin'";
 $upcoming_result = mysqli_query($conn, $upcoming_query);
 $upcoming = mysqli_fetch_assoc($upcoming_result)['total_upcoming'];
 
@@ -107,9 +92,10 @@ while ($row = mysqli_fetch_assoc($anggota_result)) {
     $anggota_data[$row['username']] = 0;
 }
 
-// Query untuk mendapatkan jumlah tugas per anggota
-$tugas_query = "SELECT penanggung_jawab, COUNT(*) as jumlah_tugas 
-                FROM tugas_media 
+// Query untuk mendapatkan jumlah tugas per anggota (hanya tugas yang diberikan admin)
+$tugas_query = "SELECT penanggung_jawab, COUNT(*) as jumlah_tugas
+                FROM tugas_media
+                WHERE pemberi_tugas = 'admin'
                 GROUP BY penanggung_jawab";
 $tugas_result = mysqli_query($conn, $tugas_query);
 
@@ -120,24 +106,23 @@ while ($row = mysqli_fetch_assoc($tugas_result)) {
     }
 }
 
-// Debugging - cetak data untuk melihat apa yang kita dapatkan
-// echo "<pre>"; print_r($anggota_data); echo "</pre>";
-
-// Statistik: Platform terbanyak
+// Statistik: Platform terbanyak (hanya untuk tugas yang diberikan admin)
 $platform_query = "SELECT platform, COUNT(*) as jumlah
-                   FROM tugas_media
-                   GROUP BY platform
-                   ORDER BY jumlah DESC
-                   LIMIT 3";
+                  FROM tugas_media
+                  WHERE pemberi_tugas = 'admin'
+                  GROUP BY platform
+                  ORDER BY jumlah DESC
+                  LIMIT 3";
 $platform_result = mysqli_query($conn, $platform_query);
 
-// Statistik: Tugas yang sering overdue
+// Statistik: Tugas yang sering overdue (hanya untuk tugas yang diberikan admin)
 $overdue_detail_query = "SELECT id, judul, penanggung_jawab, deadline, DATEDIFF(CURDATE(), deadline) as hari_terlambat
-                         FROM tugas_media
-                         WHERE deadline < CURDATE()
-                         AND status != 'Selesai'
-                         ORDER BY hari_terlambat DESC
-                         LIMIT 5";
+                        FROM tugas_media
+                        WHERE deadline < CURDATE()
+                        AND status != 'Selesai'
+                        AND pemberi_tugas = 'admin'
+                        ORDER BY hari_terlambat DESC
+                        LIMIT 5";
 $overdue_detail_result = mysqli_query($conn, $overdue_detail_query);
 
 // Mendapatkan daftar semua anggota untuk filter
@@ -159,13 +144,13 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
     // Header kolom dalam bahasa Indonesia
     fputcsv($output, [
         'No', 
-        'Judul', 
-        'Platform', 
-        'Deskripsi', 
-        'Status', 
-        'Tanggal Mulai', 
-        'Deadline', 
-        'Link', 
+        'Judul',
+        'Platform',
+        'Deskripsi',
+        'Status',
+        'Tanggal Mulai',
+        'Deadline',
+        'Link',
         'Penanggung Jawab',
         'Catatan'
     ]);
@@ -215,6 +200,7 @@ $nama_bulan = [
     '9' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
 ];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -670,7 +656,7 @@ $nama_bulan = [
 <div id="sidebar-wrapper">
     <div class="sidebar-heading">Media Staff</div>
     <div class="list-group">
-        <a href="admin_dashboard.php" class="list-group-item active">
+        <a href="../dashboard/admin_dashboard.php" class="list-group-item active">
             <i class="bi bi-speedometer2"></i>
             <span>Dashboard</span>
         </a>
@@ -780,7 +766,7 @@ $nama_bulan = [
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bi bi-search me-1"></i> Filter
                                     </button>
-                                    <a href="dashboard.php" class="btn btn-secondary">
+                                    <a href="../dashboard/admin_dashboard.php" class="btn btn-secondary">
                                         <i class="bi bi-arrow-repeat me-1"></i> Reset
                                     </a>
                                     <a href="?<?php echo http_build_query($_GET); ?>&export=csv" class="btn btn-success float-end">
@@ -950,7 +936,7 @@ $nama_bulan = [
                                                         <td><?php echo date('d/m/Y', strtotime($row['deadline'])); ?></td>
                                                         <td><span class="badge bg-danger"><?php echo $row['hari_terlambat']; ?> hari</span></td>
                                                         <td>
-                                                        <a href="../modules/tambah_catatan.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
+                                                        <a href="../views/catatan_kabid.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
                                                             <i class="bi bi-chat-square-text"></i>
                                                         </a>
                                                         </td>
@@ -1051,7 +1037,7 @@ $nama_bulan = [
                                                 <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning" title="Edit Tugas">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
-                                                <a href="../modules/tambah_catatan.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
+                                                <a href="../views/catatan_admin.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
                                                     <i class="bi bi-chat-square-text"></i>
                                                 </a>
                                             </td>
