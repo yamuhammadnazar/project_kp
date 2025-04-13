@@ -69,7 +69,6 @@ function hitungSisaHari($deadline) {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -441,7 +440,7 @@ function hitungSisaHari($deadline) {
             border-left-color: #e74a3b;
         }
         
-        .stats-card .card-body {
+                .stats-card .card-body {
             padding: 1rem;
         }
         
@@ -471,8 +470,8 @@ function hitungSisaHari($deadline) {
             font-size: 0.75rem;
             font-weight: 600;
         }
-        
-                .deadline-near {
+                
+        .deadline-near {
             background-color: #fff3cd;
             color: #856404;
         }
@@ -493,6 +492,20 @@ function hitungSisaHari($deadline) {
                 transform: translateY(-5px);
                 box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             }
+        }
+        
+        /* Modifikasi untuk tabel - font lebih kecil */
+        .table {
+            font-size: 0.85rem;
+        }
+        
+        /* Modifikasi untuk tombol aksi - sejajar horizontal */
+        .action-buttons {
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+            justify-content: flex-start;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -612,8 +625,8 @@ function hitungSisaHari($deadline) {
                         <?php
                         // Hitung tugas yang mendekati deadline (3 hari atau kurang)
                         $query_deadline = "SELECT COUNT(*) as count FROM tugas_media 
-                                          WHERE DATEDIFF(deadline, CURDATE()) BETWEEN 0 AND 3 
-                                          AND status != 'Selesai'";
+                                           WHERE DATEDIFF(deadline, CURDATE()) BETWEEN 0 AND 3 
+                                           AND status != 'Selesai'";
                         $result_deadline = mysqli_query($conn, $query_deadline);
                         $row_deadline = mysqli_fetch_assoc($result_deadline);
                         $tugas_mendekati_deadline = $row_deadline['count'];
@@ -654,7 +667,6 @@ function hitungSisaHari($deadline) {
                             </button>
                         </li>
                     </ul>
-
                     <div class="tab-content" id="taskTabsContent">
     <!-- Tab Semua Tugas -->
     <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
@@ -737,15 +749,17 @@ function hitungSisaHari($deadline) {
                                 <td><?php echo $sisa_hari; ?></td>
                                 <td><?php echo $pemberi; ?></td>
                                 <td>
-                                    <a href="../modules/edit.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-primary btn-action">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a href="../views/catatan_admin.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-info btn-action">
-                                        <i class="bi bi-chat-left-text"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $task['id']; ?>">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    <div class="action-buttons">
+                                                                                <a href="../modules/edit.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-primary btn-action">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a href="../views/catatan_admin.php?id=<?php echo $task['id']; ?>" class="btn btn-sm btn-info btn-action">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $task['id']; ?>">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -755,15 +769,13 @@ function hitungSisaHari($deadline) {
             </div>
         </div>
     </div>
-
-                    
-                    
                         
                         <!-- Tab Tugas Diberikan -->
                         <div class="tab-pane fade" id="given" role="tabpanel" aria-labelledby="given-tab">
                             <div class="card">
                                 <div class="card-body">
-                                                                        <div class="table-responsive">
+                                    
+                                    <div class="table-responsive">
                                         <table class="table table-hover" id="givenTasksTable">
                                             <thead>
                                                 <tr>
@@ -794,15 +806,17 @@ function hitungSisaHari($deadline) {
                                                     <td><?php echo date('d/m/Y', strtotime($row['deadline'])); ?></td>
                                                     <td><?php echo $sisa_hari; ?></td>
                                                     <td>
-                                                        <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary btn-action">
-                                                            <i class="bi bi-pencil-square"></i>
-                                                        </a>
-                                                        <a href="../modules/catatan_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info btn-action">
-                                                            <i class="bi bi-chat-left-text"></i>
-                                                        </a>
-                                                        <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $row['id']; ?>">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
+                                                        <div class="action-buttons">
+                                                            <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary btn-action">
+                                                                <i class="bi bi-pencil-square"></i>
+                                                            </a>
+                                                            <a href="../modules/catatan_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info btn-action">
+                                                                <i class="bi bi-chat-left-text"></i>
+                                                            </a>
+                                                            <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $row['id']; ?>">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 <?php endwhile; ?>
@@ -848,15 +862,17 @@ function hitungSisaHari($deadline) {
                                                     <td><?php echo date('d/m/Y', strtotime($row['deadline'])); ?></td>
                                                     <td><?php echo $sisa_hari; ?></td>
                                                     <td>
-                                                        <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary btn-action">
-                                                            <i class="bi bi-pencil-square"></i>
-                                                        </a>
-                                                        <a href="../modules/catatan_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info btn-action">
-                                                            <i class="bi bi-chat-left-text"></i>
-                                                        </a>
-                                                        <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $row['id']; ?>">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
+                                                        <div class="action-buttons">
+                                                            <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary btn-action">
+                                                                <i class="bi bi-pencil-square"></i>
+                                                            </a>
+                                                            <a href="../modules/catatan_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info btn-action">
+                                                                <i class="bi bi-chat-left-text"></i>
+                                                            </a>
+                                                            <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $row['id']; ?>">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 <?php endwhile; ?>
@@ -1038,7 +1054,7 @@ function hitungSisaHari($deadline) {
                 resizeTimer = setTimeout(checkWidth, 100);
             });
             
-            // Konfirmasi hapus tugas
+                        // Konfirmasi hapus tugas
             const deleteButtons = document.querySelectorAll('.btn-delete');
             const confirmDeleteButton = document.getElementById('confirmDelete');
             
@@ -1049,16 +1065,17 @@ function hitungSisaHari($deadline) {
                     // Gunakan SweetAlert2 untuk konfirmasi
                     Swal.fire({
                         title: 'Konfirmasi Hapus',
-                        text: 'Apakah Anda yakin ingin menghapus tugas ini? Tindakan ini tidak dapat dibatalkan.',
+                        text: "Apakah Anda yakin ingin menghapus tugas ini? Tindakan ini tidak dapat dibatalkan.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
                         cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Ya, Hapus!',
+                        confirmButtonText: 'Ya, hapus!',
                         cancelButtonText: 'Batal'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = `../controllers/hapus_tugas.php?id=${taskId}`;
+                            // Redirect ke halaman hapus dengan ID tugas
+                            window.location.href = '../modules/hapus_tugas.php?id=' + taskId;
                         }
                     });
                 });

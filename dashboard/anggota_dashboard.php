@@ -511,111 +511,109 @@ $nama_bulan = [
                     </div>
 
                     <!-- Daftar Tugas -->
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Daftar Tugas Media</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Judul</th>
-                                            <th>Platform</th>
-                                            <th>Status</th>
-                                            <th>Tanggal Mulai</th>
-                                            <th>Deadline</th>
-                                            <th>Catatan</th>
-                                            </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php 
-                                        if (mysqli_num_rows($result) > 0) {
-                                            $no = 1;
-                                            while ($row = mysqli_fetch_assoc($result)) {
-                                                // Format tanggal
-                                                $tanggal_mulai = date('d/m/Y', strtotime($row['tanggal_mulai']));
-                                                
-                                                // Cek deadline
-                                                $deadline_date = new DateTime($row['deadline']);
-                                                $today = new DateTime();
-                                                $interval = $today->diff($deadline_date);
-                                                $days_remaining = $interval->days;
-                                                $deadline_class = 'deadline-normal';
-                                                $deadline_text = date('d/m/Y', strtotime($row['deadline']));
-                                                
-                                                if ($today > $deadline_date && $row['status'] != 'Selesai') {
-                                                    $deadline_class = 'deadline-danger';
-                                                    $deadline_text .= " (Terlewat)";
-                                                } elseif ($days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
-                                                    $deadline_class = 'deadline-warning';
-                                                    $deadline_text .= " ($days_remaining hari lagi)";
-                                                }
-                                                
-                                                // Status badge class
-                                                $status_class = '';
-                                                switch ($row['status']) {
-                                                    case 'Belum Dikerjakan':
-                                                        $status_class = 'status-belum';
-                                                        break;
-                                                    case 'Sedang Dikerjakan':
-                                                        $status_class = 'status-sedang';
-                                                        break;
-                                                    case 'Kirim':
-                                                        $status_class = 'status-kirim';
-                                                        break;
-                                                    case 'Revisi':
-                                                        $status_class = 'status-revisi';
-                                                        break;
-                                                    case 'Selesai':
-                                                        $status_class = 'status-selesai';
-                                                        break;
-                                                }
-                                                
-                                                $catatan = '';
-                                                if (isset($row['catatan_admin']) && !empty($row['catatan_admin'])) {
-                                                    $catatan = $row['catatan_admin'];
-                                                } elseif (isset($row['catatan']) && !empty($row['catatan'])) {
-                                                    $catatan = $row['catatan'];
-                                                }
-                                                $catatan_display = strlen($catatan) > 50 ? substr($catatan, 0, 50) . '...' : $catatan;
-                                        ?>
-                                        <tr>
-                                            <td><?= $no++ ?></td>
-                                            <td>
-                                                <a href="detail_tugas.php?id=<?= $row['id'] ?>" class="text-primary font-weight-bold">
-                                                    <?= $row['judul'] ?>
-                                                </a>
-                                            </td>
-                                            <td><?= $row['platform'] ?></td>
-                                            <td><span class="badge <?= $status_class ?>"><?= $row['status'] ?></span></td>
-                                            <td><?= $tanggal_mulai ?></td>
-                                            <td class="<?= $deadline_class ?>"><?= $deadline_text ?></td>
-                                            <td>
-                                                <?php if (!empty($catatan)): ?>
-                                                <div class="custom-tooltip">
-                                                    <?= $catatan_display ?>
-                                                    <span class="tooltip-text"><?= $catatan ?></span>
-                                                </div>
-                                                <?php else: ?>
-                                                <span class="text-muted">-</span>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                        <?php 
-                                            }
-                                        } else {
-                                        ?>
-                                        <tr>
-                                            <td colspan="7" class="text-center">Tidak ada data tugas yang ditemukan</td>
-                                        </tr>
-                                        <?php } ?>
-                                    </tbody>
-                                </table>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Daftar Tugas Media</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+                <thead>
+                    <tr class="small">
+                        <th>No</th>
+                        <th>Judul</th>
+                        <th>Platform</th>
+                        <th>Status</th>
+                        <th>Tanggal Mulai</th>
+                        <th>Deadline</th>
+                        <th>Catatan</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    <?php
+                    if (mysqli_num_rows($result) > 0) {
+                        $no = 1;
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            // Format tanggal
+                            $tanggal_mulai = date('d/m/Y', strtotime($row['tanggal_mulai']));
+                            
+                            // Cek deadline
+                            $deadline_date = new DateTime($row['deadline']);
+                            $today = new DateTime();
+                            $interval = $today->diff($deadline_date);
+                            $days_remaining = $interval->days;
+                            $deadline_class = 'deadline-normal';
+                            $deadline_text = date('d/m/Y', strtotime($row['deadline']));
+                            
+                            if ($today > $deadline_date && $row['status'] != 'Selesai') {
+                                $deadline_class = 'deadline-danger';
+                                $deadline_text .= " (Terlewat)";
+                            } elseif ($days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
+                                $deadline_class = 'deadline-warning';
+                                $deadline_text .= " ($days_remaining hari lagi)";
+                            }
+                            
+                            // Status badge class
+                            $status_class = '';
+                            switch ($row['status']) {
+                                case 'Belum Dikerjakan':
+                                    $status_class = 'status-belum';
+                                    break;
+                                case 'Sedang Dikerjakan':
+                                    $status_class = 'status-sedang';
+                                    break;
+                                case 'Kirim':
+                                    $status_class = 'status-kirim';
+                                    break;
+                                case 'Revisi':
+                                    $status_class = 'status-revisi';
+                                    break;
+                                case 'Selesai':
+                                    $status_class = 'status-selesai';
+                                    break;
+                            }
+                            
+                            $catatan = '';
+                            if (isset($row['catatan_admin']) && !empty($row['catatan_admin'])) {
+                                $catatan = $row['catatan_admin'];
+                            } elseif (isset($row['catatan']) && !empty($row['catatan'])) {
+                                $catatan = $row['catatan'];
+                            }
+                            $catatan_display = strlen($catatan) > 50 ? substr($catatan, 0, 50) . '...' : $catatan;
+                    ?>
+                    <tr>
+                        <td><?= $no++ ?></td>
+                        <td class="fw-medium"><?= $row['judul'] ?></td>
+                        <td><?= $row['platform'] ?></td>
+                        <td><span class="badge <?= $status_class ?>"><?= $row['status'] ?></span></td>
+                        <td><?= $tanggal_mulai ?></td>
+                        <td class="<?= $deadline_class ?>"><?= $deadline_text ?></td>
+                        <td>
+                            <?php if (!empty($catatan)): ?>
+                            <div class="custom-tooltip">
+                                <?= $catatan_display ?>
+                                <span class="tooltip-text"><?= $catatan ?></span>
                             </div>
-                        </div>
-                    </div>
+                            <?php else: ?>
+                            <span class="text-muted">-</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php
+                        }
+                    } else {
+                    ?>
+                    <tr>
+                        <td colspan="7" class="text-center">Tidak ada data tugas yang ditemukan</td>
+                    </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+                    
                 </div>
             </div>
             
