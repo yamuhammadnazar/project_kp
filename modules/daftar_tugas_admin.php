@@ -1075,7 +1075,7 @@ function hitungSisaHari($deadline) {
                     }).then((result) => {
                         if (result.isConfirmed) {
                             // Redirect ke halaman hapus dengan ID tugas
-                            window.location.href = '../modules/hapus_tugas.php?id=' + taskId;
+                            window.location.href = '../controllers/hapus_tugas.php?id=' + taskId;
                         }
                     });
                 });
