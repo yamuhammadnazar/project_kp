@@ -225,88 +225,89 @@ $nama_bulan = [
     <!-- Animate.css untuk animasi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Custom CSS -->
-    <style>
-        :root {
-            --sidebar-width: 280px;
-            --sidebar-collapsed-width: 80px;
-            --topbar-height: 60px;
-            --primary-color: #8e44ad; /* Warna utama berbeda untuk Kabid (ungu) */
-            --secondary-color: #f8f9fc;
-            --transition-speed: 0.3s;
-        }
+     
+<style>
+    :root {
+        --sidebar-width: 280px;
+        --sidebar-collapsed-width: 80px;
+        --topbar-height: 60px;
+        --primary-color: rgb(25, 77, 51); /* Warna utama hijau gelap */
+        --secondary-color: #f8f9fc;
+        --transition-speed: 0.3s;
+    }
         
-        body {
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f8f9fc;
-            overflow-x: hidden;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
+    body {
+        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background-color: #f8f9fc;
+        overflow-x: hidden;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
         
-        body.loaded {
-            opacity: 1;
-        }
+    body.loaded {
+        opacity: 1;
+    }
         
-        #wrapper {
-            display: flex;
-        }
+    #wrapper {
+        display: flex;
+    }
         
-        #sidebar-wrapper {
-            min-height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, #6a0dad 0%, #8e44ad 100%); /* Warna sidebar untuk Kabid */
-            transition: all var(--transition-speed) ease;
-            z-index: 1000;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden; /* Mencegah horizontal scroll */
-        }
+    #sidebar-wrapper {
+        min-height: 100vh;
+        width: var(--sidebar-width);
+        background: linear-gradient(180deg, #1a472a 0%, #2d5a40 100%); /* Warna sidebar hijau gelap */
+        transition: all var(--transition-speed) ease;
+        z-index: 1000;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden; /* Mencegah horizontal scroll */
+    }
         
-        #sidebar-wrapper.collapsed {
-            width: var(--sidebar-collapsed-width);
-        }
+    #sidebar-wrapper.collapsed {
+        width: var(--sidebar-collapsed-width);
+    }
         
-        #sidebar-wrapper .sidebar-heading {
-            padding: 1.2rem 1rem;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: white;
-            text-align: center;
-            transition: all var(--transition-speed) ease;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            height: var(--topbar-height);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    #sidebar-wrapper .sidebar-heading {
+        padding: 1.2rem 1rem;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: white;
+        text-align: center;
+        transition: all var(--transition-speed) ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        height: var(--topbar-height);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
         
-        #sidebar-wrapper.collapsed .sidebar-heading {
-            font-size: 0;
-            padding: 1.2rem 0;
-        }
+    #sidebar-wrapper.collapsed .sidebar-heading {
+        font-size: 0;
+        padding: 1.2rem 0;
+    }
         
-        #sidebar-wrapper.collapsed .sidebar-heading::before {
-            content: "KB";
-            font-size: 1.2rem;
-        }
+    #sidebar-wrapper.collapsed .sidebar-heading::before {
+        content: "KB";
+        font-size: 1.2rem;
+    }
         
-        #sidebar-wrapper .list-group {
-            width: 100%;
-            padding: 1rem 0;
-        }
+    #sidebar-wrapper .list-group {
+        width: 100%;
+        padding: 1rem 0;
+    }
         
-        #sidebar-wrapper .list-group-item {
-            border: none;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.8);
-            padding: 0.8rem 1.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
+    #sidebar-wrapper .list-group-item {
+        border: none;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.9); /* Lebih terang untuk keterbacaan */
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
         align-items: center;
         transition: all 0.2s ease;
         border-left: 4px solid transparent;
@@ -314,13 +315,13 @@ $nama_bulan = [
     }
     
     #sidebar-wrapper .list-group-item:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.15);
         color: white;
         border-left: 4px solid white;
     }
     
     #sidebar-wrapper .list-group-item.active {
-        background-color: rgba(255, 255, 255, 0.2);
+        background-color: rgba(255, 255, 255, 0.25);
         color: white;
         border-left: 4px solid white;
     }
@@ -375,14 +376,14 @@ $nama_bulan = [
     #sidebarToggle {
         background-color: transparent;
         border: none;
-        color: #6a0dad;
+        color: #1a472a; /* Warna hijau gelap */
         font-size: 1.5rem;
         cursor: pointer;
         transition: all 0.2s ease;
     }
     
     #sidebarToggle:hover {
-        color: #8e44ad;
+        color: #2d5a40; /* Warna hijau medium */
     }
     
     .user-info {
@@ -450,11 +451,11 @@ $nama_bulan = [
     }
     
     .stat-card.primary {
-        border-left-color: #8e44ad;
+        border-left-color: #1a472a; /* Hijau gelap */
     }
     
     .stat-card.warning {
-        border-left-color: #f6c23e;
+        border-left-color: #b35900; /* Oranye gelap */
     }
     
     .stat-card.danger {
@@ -466,7 +467,7 @@ $nama_bulan = [
     }
     
     .stat-card.info {
-        border-left-color: #36b9cc;
+        border-left-color: #cc4b2c; /* Coral gelap */
     }
     
     .stat-card .stat-icon {
@@ -494,7 +495,7 @@ $nama_bulan = [
     }
     
     .progress-bar {
-        background-color: #8e44ad;
+        background-color: #1a472a; /* Hijau gelap */
     }
     
     .table {
@@ -528,11 +529,11 @@ $nama_bulan = [
     }
     
     .badge-primary {
-        background-color: #8e44ad;
+        background-color: #1a472a; /* Hijau gelap */
     }
     
     .badge-warning {
-        background-color: #f6c23e;
+        background-color: #b35900; /* Oranye gelap */
         color: #fff;
     }
     
@@ -545,7 +546,7 @@ $nama_bulan = [
     }
     
     .badge-info {
-        background-color: #36b9cc;
+        background-color: #cc4b2c; /* Coral gelap */
     }
     
     .badge-secondary {
@@ -553,23 +554,24 @@ $nama_bulan = [
     }
     
     .btn-primary {
-        background-color: #8e44ad;
-        border-color: #8e44ad;
+        background-color: #1a472a; /* Hijau gelap */
+        border-color: #1a472a;
     }
     
     .btn-primary:hover {
-        background-color: #7d3c98;
-        border-color: #7d3c98;
+        background-color: #0f2c1a; /* Hijau sangat gelap */
+        border-color: #0f2c1a;
     }
     
     .btn-outline-primary {
-        color: #8e44ad;
-        border-color: #8e44ad;
+        color: #1a472a; /* Hijau gelap */
+        border-color: #1a472a;
     }
     
     .btn-outline-primary:hover {
-        background-color: #8e44ad;
-        border-color: #8e44ad;
+        background-color: #1a472a;
+        border-color: #1a472a;
+        color: white;
     }
     
     .filter-form {
@@ -594,7 +596,7 @@ $nama_bulan = [
     
     .filter-form .form-control:focus, .filter-form .form-select:focus {
         border-color: #bac8f3;
-        box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.25);
+        box-shadow: 0 0 0 0.25rem rgba(26, 71, 42, 0.25); /* Hijau gelap dengan opacity */
     }
     
     .filter-form .btn {
@@ -612,36 +614,36 @@ $nama_bulan = [
         #sidebar-wrapper {
             width: var(--sidebar-collapsed-width);
         }
-        
+            
         #sidebar-wrapper .sidebar-heading {
             font-size: 0;
             padding: 1.2rem 0;
         }
-        
+            
         #sidebar-wrapper .sidebar-heading::before {
             content: "KB";
             font-size: 1.2rem;
         }
-        
+            
         #sidebar-wrapper .list-group-item span {
             display: none;
         }
-        
+            
         #sidebar-wrapper .list-group-item {
             text-align: center;
             padding: 0.8rem;
             justify-content: center;
         }
-        
+            
         #sidebar-wrapper .list-group-item i {
             margin-right: 0;
             font-size: 1.2rem;
         }
-        
+            
         #content-wrapper {
             margin-left: var(--sidebar-collapsed-width);
         }
-        
+            
         .user-info .user-name {
             display: none;
         }
@@ -652,16 +654,16 @@ $nama_bulan = [
             flex-direction: column;
             align-items: flex-start;
         }
-        
+            
         .card-header .btn {
             margin-top: 0.5rem;
             align-self: flex-end;
         }
-        
+            
         .filter-form .row {
             flex-direction: column;
         }
-        
+            
         .filter-form .col {
             margin-bottom: 1rem;
         }
@@ -684,17 +686,17 @@ $nama_bulan = [
     }
     
     .status-sedang {
-        background-color: #f6c23e;
+        background-color: #b35900; /* Oranye gelap */
         color: white;
     }
     
     .status-kirim {
-        background-color: #36b9cc;
+        background-color: #cc4b2c; /* Coral gelap */
         color: white;
     }
     
     .status-revisi {
-        background-color: #fd7e14;
+        background-color: #d9510c; /* Oranye kemerahan gelap */
         color: white;
     }
     
@@ -709,7 +711,7 @@ $nama_bulan = [
     }
     
     .deadline-warning {
-        color: #f6c23e;
+        color: #b35900; /* Oranye gelap */
         font-weight: bold;
     }
     
@@ -756,14 +758,16 @@ $nama_bulan = [
     }
     
     ::-webkit-scrollbar-thumb {
-        background: #8e44ad;
+        background: #1a472a; /* Hijau gelap */
         border-radius: 4px;
     }
     
     ::-webkit-scrollbar-thumb:hover {
-        background: #7d3c98;
+        background: #0f2c1a; /* Hijau sangat gelap */
     }
-    </style>
+</style>
+
+
 </head>
 <body>
     <div id="wrapper">
@@ -771,26 +775,29 @@ $nama_bulan = [
         <div id="sidebar-wrapper">
             <div class="sidebar-heading">Dashboard Kepala Bidang</div>
             <div class="list-group">
-                <a href="kabid_dashboard.php" class="list-group-item active">
+                <a href="../dashboard/kabid_dashboard" class="list-group-item active">
                     <i class="bi bi-speedometer2"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="kabid_tugas.php" class="list-group-item">
+                <a href="../modules/daftar_tugas_kabid.php" class="list-group-item">
                     <i class="bi bi-list-task"></i>
                     <span>Daftar Tugas</span>
+                <a href="../modules/tambah_tugas_kabid.php" class="list-group-item">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Tambah Tugas</span>
                 </a>
-                <a href="kabid_verifikasi.php" class="list-group-item">
-                    <i class="bi bi-check-circle"></i>
-                    <span>Verifikasi Tugas</span>
+                <a href="../auth/register_admin.php" class="list-group-item">
+                    <i class="bi bi-person-plus"></i>
+                    <span>Tambah Admin Staf</span>
                 </a>
-                <a href="kabid_laporan.php" class="list-group-item">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span>Laporan</span>
+                <a href="../modules/kelola_admin.php" class="list-group-item">
+                    <i class="bi bi-people"></i>
+                    <span>Kelola Admin Staff</span>
                 </a>
                 <a href="../auth/logout.php" class="list-group-item">
                     <i class="bi bi-box-arrow-right"></i>
-                    <span>Logout</span>
-                </a>
+                    <span>Keluar</span>
+ 
             </div>
         </div>
         
