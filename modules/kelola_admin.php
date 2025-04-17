@@ -493,7 +493,7 @@ $result = mysqli_query($conn, $query);
                                                                         onclick="openModal(<?php echo $row['id']; ?>, '<?php echo $row['username']; ?>')">
                                                                     <i class="bi bi-pencil-square"></i> Edit
                                                                 </button>
-                                                                <a href="../controllers/hapus_admin.php?id=<?php echo $row['id']; ?>" 
+                                                                <a href="../modules/hapus_admin.php?id=<?php echo $row['id']; ?>" 
                                                                    class="btn btn-delete btn-sm"
                                                                    onclick="return confirm('Yakin ingin menghapus admin ini?')">
                                                                     <i class="bi bi-trash"></i> Hapus
