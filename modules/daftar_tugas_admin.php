@@ -807,10 +807,10 @@ function hitungSisaHari($deadline) {
                                                     <td><?php echo $sisa_hari; ?></td>
                                                     <td>
                                                         <div class="action-buttons">
-                                                            <a href="../modules/edit_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary btn-action">
+                                                            <a href="../modules/edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary btn-action">
                                                                 <i class="bi bi-pencil-square"></i>
                                                             </a>
-                                                            <a href="../modules/catatan_tugas.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info btn-action">
+                                                            <a href="../views/catatan_admin.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info btn-action">
                                                                 <i class="bi bi-chat-left-text"></i>
                                                             </a>
                                                             <button type="button" class="btn btn-sm btn-danger btn-action btn-delete" data-id="<?php echo $row['id']; ?>">
