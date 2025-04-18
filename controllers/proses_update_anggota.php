@@ -36,7 +36,7 @@ $query = "UPDATE tugas_media SET
 // Execute and redirect
 if(mysqli_query($conn, $query)) {
     $_SESSION['success'] = "Tugas berhasil diperbarui!";
-    header("Location: ../dashboard/anggota_dashboard.php");
+    header("Location: ../modules/daftar_tugas_anggota.php");
     exit();
 } else {
     $_SESSION['error'] = "Gagal memperbarui tugas: " . mysqli_error($conn);

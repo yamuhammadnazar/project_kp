@@ -134,13 +134,6 @@ $overdue_detail_result = mysqli_query($conn, $overdue_detail_query);
 $admin_list_query = "SELECT DISTINCT username FROM users WHERE role = 'admin' ORDER BY username";
 $admin_list_result = mysqli_query($conn, $admin_list_query);
 
-// Query untuk tugas anggota yang sudah selesai dan diverifikasi oleh admin
-$query_anggota = "SELECT t.* FROM tugas_media t
-                  JOIN users u ON t.penanggung_jawab = u.username
-                  WHERE u.role = 'anggota' AND t.status = 'Selesai' AND t.verified_by_admin = 1
-                  ORDER BY t.tanggal_mulai DESC";
-$result_anggota = mysqli_query($conn, $query_anggota);
-
 // Ekspor ke CSV jika diminta
 if (isset($_GET['export']) && $_GET['export'] == 'csv') {
     // Set header untuk download file CSV
@@ -1237,9 +1230,9 @@ $nama_bulan = [
                         </div>
                     </div>
                     
-                    <!-- Platform Statistics and Verified Tasks -->
+                    <!-- Platform Statistics -->
                     <div class="row fade-in">
-                        <div class="col-lg-6">
+                        <div class="col-lg-12">
                             <div class="card mb-4">
                                 <div class="card-header">
                                     <h6 class="m-0 font-weight-bold">Platform Terbanyak</h6>
@@ -1254,7 +1247,7 @@ $nama_bulan = [
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php 
+                                                <?php
                                                 if (mysqli_num_rows($platform_result) > 0) {
                                                     while ($row = mysqli_fetch_assoc($platform_result)) {
                                                 ?>
@@ -1262,7 +1255,7 @@ $nama_bulan = [
                                                     <td><?php echo $row['platform']; ?></td>
                                                     <td><span class="badge bg-primary"><?php echo $row['jumlah']; ?></span></td>
                                                 </tr>
-                                                <?php 
+                                                <?php
                                                     }
                                                 } else {
                                                     echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
@@ -1274,48 +1267,8 @@ $nama_bulan = [
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="col-lg-6">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h6 class="m-0 font-weight-bold">Tugas Anggota Terverifikasi</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Judul</th>
-                                                    <th>Anggota</th>
-                                                    <th>Tanggal Selesai</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php 
-                                                $count = 0;
-                                                if (mysqli_num_rows($result_anggota) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($result_anggota)) {
-                                                        if ($count >= 5) break;
-                                                ?>
-                                                <tr>
-                                                    <td><?php echo $row['judul']; ?></td>
-                                                    <td><?php echo $row['penanggung_jawab']; ?></td>
-                                                    <td><?php echo date('d/m/Y', strtotime($row['tanggal_selesai'])); ?></td>
-                                                </tr>
-                                                <?php 
-                                                        $count++;
-                                                    }
-                                                } else {
-                                                    echo "<tr><td colspan='3' class='text-center'>Tidak ada tugas anggota yang terverifikasi</td></tr>";
-                                                }
-                                                ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
+
                 </div>
             </div>
         </div>

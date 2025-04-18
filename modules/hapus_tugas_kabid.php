@@ -23,7 +23,7 @@ if(isset($_GET['id'])) {
 
 // Redirect kembali ke dashboard sesuai role
 if ($_SESSION["role"] == "kabid") {
-    header("Location: ../dashboard/kabid_dashboard.php");
+    header("Location: ../modules/daftar_tugas_kabid.php");
 } elseif ($_SESSION["role"] == "admin") {
     header("Location: ../dashboard/admin_dashboard.php");
 } else {

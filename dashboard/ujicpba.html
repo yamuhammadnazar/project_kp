@@ -1,94 +1,9 @@
-<?php
-include '../auth/koneksi.php';
-
-if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "kabid") {
-    header("Location: ../auth/login.php");
-    exit();
-}
-
-$username = $_SESSION["username"];
-
-// Cek apakah ada ID tugas yang dikirim
-if (!isset($_GET['id']) || empty($_GET['id'])) {
-    header("Location: ../modules/daftar_tugas_kabid.php");
-    exit();
-}
-
-$id_tugas = $_GET['id'];
-
-// Ambil data tugas berdasarkan ID
-$query = "SELECT * FROM tugas_media WHERE id = ?";
-$stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "i", $id_tugas);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-
-if (mysqli_num_rows($result) == 0) {
-    header("Location: ../modules/daftar_tugas_kabid.php");
-    exit();
-}
-
-$tugas = mysqli_fetch_assoc($result);
-
-// Ambil daftar admin untuk dropdown
-$admin_query = "SELECT username FROM users WHERE role = 'admin' ORDER BY username";
-$admin_result = mysqli_query($conn, $admin_query);
-
-// Proses form jika disubmit
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $judul = $_POST['judul'];
-    $platform = $_POST['platform']; // Ini sekarang adalah kategori
-    $deskripsi = $_POST['deskripsi'];
-    $tanggal_mulai = $_POST['tanggal_mulai'];
-    $deadline = $_POST['deadline'];
-    $penanggung_jawab = $_POST['penanggung_jawab'];
-    $status = $_POST['status'];
-    
-    // Gunakan nilai yang sudah ada di database untuk field yang dihapus
-    $link_drive = $tugas['link_drive'];
-
-    // Update data tugas
-    $update_query = "UPDATE tugas_media SET 
-                judul = ?, 
-                platform = ?, 
-                deskripsi = ?, 
-                tanggal_mulai = ?, 
-                deadline = ?, 
-                link_drive = ?, 
-                penanggung_jawab = ?, 
-                status = ? 
-                WHERE id = ?";
-    
-$update_stmt = mysqli_prepare($conn, $update_query);
-mysqli_stmt_bind_param(
-    $update_stmt, 
-    "ssssssssi",
-    $judul, 
-    $platform, 
-    $deskripsi, 
-    $tanggal_mulai, 
-    $deadline, 
-    $link_drive, 
-    $penanggung_jawab, 
-    $status, 
-    $id_tugas
-);
-    
-    if (mysqli_stmt_execute($update_stmt)) {
-        // Redirect ke halaman daftar tugas dengan pesan sukses
-        header("Location: ../modules/daftar_tugas_kabid.php?success=1");
-        exit();
-    } else {
-        $error_message = "Gagal mengupdate tugas: " . mysqli_error($conn);
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Tugas - Kepala Bidang</title>
+    <title>Dashboard Kepala Bidang</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -96,7 +11,8 @@ mysqli_stmt_bind_param(
     <!-- Animate.css untuk animasi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Custom CSS -->
-    <style>
+     
+<style>
     :root {
         --sidebar-width: 280px;
         --sidebar-collapsed-width: 80px;
@@ -105,7 +21,7 @@ mysqli_stmt_bind_param(
         --secondary-color: #f8f9fc;
         --transition-speed: 0.3s;
     }
-    
+        
     body {
         font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         background-color: #f8f9fc;
@@ -113,15 +29,15 @@ mysqli_stmt_bind_param(
         opacity: 0;
         transition: opacity 0.5s ease;
     }
-    
+        
     body.loaded {
         opacity: 1;
     }
-    
+        
     #wrapper {
         display: flex;
     }
-    
+        
     #sidebar-wrapper {
         min-height: 100vh;
         width: var(--sidebar-width);
@@ -136,11 +52,11 @@ mysqli_stmt_bind_param(
         overflow-y: auto;
         overflow-x: hidden; /* Mencegah horizontal scroll */
     }
-    
+        
     #sidebar-wrapper.collapsed {
         width: var(--sidebar-collapsed-width);
     }
-    
+        
     #sidebar-wrapper .sidebar-heading {
         padding: 1.2rem 1rem;
         font-size: 1.2rem;
@@ -154,22 +70,22 @@ mysqli_stmt_bind_param(
         align-items: center;
         justify-content: center;
     }
-    
+        
     #sidebar-wrapper.collapsed .sidebar-heading {
         font-size: 0;
         padding: 1.2rem 0;
     }
-    
+        
     #sidebar-wrapper.collapsed .sidebar-heading::before {
         content: "KB";
         font-size: 1.2rem;
     }
-    
+        
     #sidebar-wrapper .list-group {
         width: 100%;
         padding: 1rem 0;
     }
-    
+        
     #sidebar-wrapper .list-group-item {
         border: none;
         background: transparent;
@@ -315,6 +231,114 @@ mysqli_stmt_bind_param(
         padding: 1.25rem;
     }
     
+    .stat-card {
+        border-left: 4px solid;
+        border-radius: 10px;
+    }
+    
+    .stat-card.primary {
+        border-left-color: #1a472a; /* Hijau gelap */
+    }
+    
+    .stat-card.warning {
+        border-left-color: #b35900; /* Oranye gelap */
+    }
+    
+    .stat-card.danger {
+        border-left-color: #e74a3b;
+    }
+    
+    .stat-card.success {
+        border-left-color: #1cc88a;
+    }
+    
+    .stat-card.info {
+        border-left-color: #cc4b2c; /* Coral gelap */
+    }
+    
+    .stat-card .stat-icon {
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+    
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #5a5c69;
+    }
+    
+    .stat-card .stat-label {
+        font-size: 0.875rem;
+        color: #858796;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+    
+    .progress {
+        height: 0.5rem;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+    }
+    
+    .progress-bar {
+        background-color: #1a472a; /* Hijau gelap */
+    }
+    
+    .table {
+        color: #5a5c69;
+    }
+    
+    .table thead th {
+        background-color: #f8f9fc;
+        border-bottom: 2px solid #e3e6f0;
+        font-weight: 700;
+        color: #6e707e;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.8rem;
+        padding: 1rem;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fc;
+    }
+    
+    .table tbody td {
+        vertical-align: middle;
+        padding: 0.75rem 1rem;
+    }
+    
+    .badge {
+        font-weight: 600;
+        padding: 0.35em 0.65em;
+        border-radius: 0.25rem;
+    }
+    
+    .badge-primary {
+        background-color: #1a472a; /* Hijau gelap */
+    }
+    
+    .badge-warning {
+        background-color: #b35900; /* Oranye gelap */
+        color: #fff;
+    }
+    
+    .badge-danger {
+        background-color: #e74a3b;
+    }
+    
+    .badge-success {
+        background-color: #1cc88a;
+    }
+    
+    .badge-info {
+        background-color: #cc4b2c; /* Coral gelap */
+    }
+    
+    .badge-secondary {
+        background-color: #858796;
+    }
+    
     .btn-primary {
         background-color: #1a472a; /* Hijau gelap */
         border-color: #1a472a;
@@ -336,58 +360,39 @@ mysqli_stmt_bind_param(
         color: white;
     }
     
-    /* Form styling */
-    .form-label {
+    .filter-form {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-form label {
         font-weight: 600;
         color: #5a5c69;
     }
     
-    .form-control, .form-select {
+    .filter-form .form-control, .filter-form .form-select {
         border-radius: 5px;
         border: 1px solid #d1d3e2;
         font-size: 0.9rem;
         padding: 0.5rem 1rem;
     }
     
-    .form-control:focus, .form-select:focus {
+    .filter-form .form-control:focus, .filter-form .form-select:focus {
         border-color: #bac8f3;
         box-shadow: 0 0 0 0.25rem rgba(26, 71, 42, 0.25); /* Hijau gelap dengan opacity */
     }
     
-    /* Status badges */
-    .badge-belum {
-        background-color: #e74a3b;
-        color: white;
+    .filter-form .btn {
+        padding: 0.5rem 1rem;
+        font-weight: 600;
     }
     
-    .badge-sedang {
-        background-color: #b35900; /* Oranye gelap */
-        color: white;
-    }
-    
-    .badge-kirim {
-        background-color: #cc4b2c; /* Coral gelap */
-        color: white;
-    }
-    
-    .badge-revisi {
-        background-color: #d9510c; /* Oranye kemerahan gelap */
-        color: white;
-    }
-    
-    .badge-selesai {
-        background-color: #1cc88a;
-        color: white;
-    }
-    
-    /* Fade-in animation */
-    .fade-in {
-        animation: fadeIn 0.5s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    .chart-container {
+        position: relative;
+        height: 300px;
     }
     
     /* Responsiveness */
@@ -395,37 +400,36 @@ mysqli_stmt_bind_param(
         #sidebar-wrapper {
             width: var(--sidebar-collapsed-width);
         }
-        
+            
         #sidebar-wrapper .sidebar-heading {
             font-size: 0;
             padding: 1.2rem 0;
         }
-        
+            
         #sidebar-wrapper .sidebar-heading::before {
             content: "KB";
             font-size: 1.2rem;
         }
-        
+            
         #sidebar-wrapper .list-group-item span {
             display: none;
         }
-        
+            
         #sidebar-wrapper .list-group-item {
             text-align: center;
             padding: 0.8rem;
             justify-content: center;
         }
-        
+            
         #sidebar-wrapper .list-group-item i {
             margin-right: 0;
             font-size: 1.2rem;
         }
-        
+            
         #content-wrapper {
-            margin-left: var(
---sidebar-collapsed-width);
+            margin-left: var(--sidebar-collapsed-width);
         }
-        
+            
         .user-info .user-name {
             display: none;
         }
@@ -436,15 +440,98 @@ mysqli_stmt_bind_param(
             flex-direction: column;
             align-items: flex-start;
         }
-        
+            
         .card-header .btn {
             margin-top: 0.5rem;
             align-self: flex-end;
         }
-        
-        .form-group {
+            
+        .filter-form .row {
+            flex-direction: column;
+        }
+            
+        .filter-form .col {
             margin-bottom: 1rem;
         }
+    }
+    
+    /* Animasi */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Status warna */
+    .status-belum {
+        background-color: #e74a3b;
+        color: white;
+    }
+    
+    .status-sedang {
+        background-color: #b35900; /* Oranye gelap */
+        color: white;
+    }
+    
+    .status-kirim {
+        background-color: #cc4b2c; /* Coral gelap */
+        color: white;
+    }
+    
+    .status-revisi {
+        background-color: #d9510c; /* Oranye kemerahan gelap */
+        color: white;
+    }
+    
+    .status-selesai {
+        background-color: #1cc88a;
+        color: white;
+    }
+    
+    /* Deadline styling */
+    .deadline-normal {
+        color: #5a5c69;
+    }
+    
+    .deadline-warning {
+        color: #b35900; /* Oranye gelap */
+        font-weight: bold;
+    }
+    
+    .deadline-danger {
+        color: #e74a3b;
+        font-weight: bold;
+    }
+    
+    /* Tooltip styling */
+    .custom-tooltip {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .custom-tooltip .tooltip-text {
+        visibility: hidden;
+        width: 200px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .custom-tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
     }
     
     /* Scrollbar styling */
@@ -464,7 +551,9 @@ mysqli_stmt_bind_param(
     ::-webkit-scrollbar-thumb:hover {
         background: #0f2c1a; /* Hijau sangat gelap */
     }
-    </style>
+</style>
+
+
 </head>
 <body>
     <div id="wrapper">
@@ -472,14 +561,13 @@ mysqli_stmt_bind_param(
         <div id="sidebar-wrapper">
             <div class="sidebar-heading">Dashboard Kepala Bidang</div>
             <div class="list-group">
-                <a href="../dashboard/kabid_dashboard.php" class="list-group-item">
+                <a href="../dashboard/kabid_dashboard" class="list-group-item active">
                     <i class="bi bi-speedometer2"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="../modules/daftar_tugas_kabid.php" class="list-group-item active">
+                <a href="../modules/daftar_tugas_kabid.php" class="list-group-item">
                     <i class="bi bi-list-task"></i>
                     <span>Daftar Tugas</span>
-                </a>
                 <a href="../modules/tambah_tugas_kabid.php" class="list-group-item">
                     <i class="bi bi-plus-circle"></i>
                     <span>Tambah Tugas</span>
@@ -495,7 +583,7 @@ mysqli_stmt_bind_param(
                 <a href="../auth/logout.php" class="list-group-item">
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Keluar</span>
-                </a>
+ 
             </div>
         </div>
         
@@ -517,106 +605,8 @@ mysqli_stmt_bind_param(
             <!-- Main Content -->
             <div class="content">
                 <div class="container-fluid">
-                    <h1 class="h3 mb-4 text-gray-800 fade-in">Edit Tugas</h1>
+                    <h1 class="h3 mb-4 text-gray-800 fade-in">Daftar Tugas </h1>
                     
-                    <?php if (isset($error_message)): ?>
-                    <div class="alert alert-danger fade-in" role="alert">
-                        <?php echo $error_message; ?>
-                    </div>
-                    <?php endif; ?>
-                    
-                    <div class="card fade-in">
-                        <div class="card-header">
-                            <h6 class="m-0 font-weight-bold">Form Edit Tugas</h6>
-                            <a href="../modules/daftar_tugas_kabid.php" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-arrow-left"></i> Kembali ke Daftar Tugas
-                            </a>
-                        </div>
-                        <div class="card-body">
-                            <form action="" method="POST">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="judul" class="form-label">Judul Tugas</label>
-                                            <input type="text" class="form-control" id="judul" name="judul" value="<?php echo htmlspecialchars($tugas['judul']); ?>" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="platform" class="form-label">Kategori</label>
-                                            <select class="form-select" id="platform" name="platform" required>
-                                                <option value="">Pilih Kategori</option>
-                                                <option value="Pemberitahuan" <?php echo ($tugas['platform'] == 'Pemberitahuan') ? 'selected' : ''; ?>>Pemberitahuan</option>
-                                                <option value="Tugas" <?php echo ($tugas['platform'] == 'Tugas') ? 'selected' : ''; ?>>Tugas</option>
-                                                <option value="Laporan" <?php echo ($tugas['platform'] == 'Laporan') ? 'selected' : ''; ?>>Laporan</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="deskripsi" class="form-label">Deskripsi</label>
-                                    <textarea class="form-control" id="deskripsi" name="deskripsi" rows="4"><?php echo htmlspecialchars($tugas['deskripsi']); ?></textarea>
-                                </div>
-                                
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
-                                            <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai" value="<?php echo $tugas['tanggal_mulai']; ?>" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="deadline" class="form-label">Deadline</label>
-                                            <input type="date" class="form-control" id="deadline" name="deadline" value="<?php echo $tugas['deadline']; ?>" required>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="penanggung_jawab" class="form-label">Penanggung Jawab</label>
-                                            <select class="form-select" id="penanggung_jawab" name="penanggung_jawab" required>
-                                                <option value="">Pilih Admin</option>
-                                                <?php while ($admin = mysqli_fetch_assoc($admin_result)): ?>
-                                                <option value="<?php echo $admin['username']; ?>" <?php echo ($tugas['penanggung_jawab'] == $admin['username']) ? 'selected' : ''; ?>>
-                                                    <?php echo $admin['username']; ?>
-                                                </option>
-                                                <?php endwhile; ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="status" class="form-label">Status</label>
-                                            <select class="form-select" id="status" name="status" required>
-                                                <option value="Belum Dikerjakan" <?php echo ($tugas['status'] == 'Belum Dikerjakan') ? 'selected' : ''; ?>>Belum Dikerjakan</option>
-                                                <option value="Sedang Dikerjakan" <?php echo ($tugas['status'] == 'Sedang Dikerjakan') ? 'selected' : ''; ?>>Sedang Dikerjakan</option>
-                                                <option value="Kirim" <?php echo ($tugas['status'] == 'Kirim') ? 'selected' : ''; ?>>Kirim</option>
-                                                <option value="Revisi" <?php echo ($tugas['status'] == 'Revisi') ? 'selected' : ''; ?>>Revisi</option>
-                                                <option value="Selesai" <?php echo ($tugas['status'] == 'Selesai') ? 'selected' : ''; ?>>Selesai</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <a href="../modules/daftar_tugas_kabid.php" class="btn btn-outline-secondary">
-                                        <i class="bi bi-x-circle"></i> Batal
-                                    </a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-save"></i> Simpan Perubahan
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
