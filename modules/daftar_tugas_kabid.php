@@ -808,6 +808,9 @@ $jumlah_belum_dilihat = $belum_dilihat_row['total'];
                                                             <a href="edit_tugas_kabid.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">
                                                                 <i class="bi bi-pencil"></i>
                                                             </a>
+                                                            <a href="hapus_tugas.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus tugas ini?')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </a>
                                                         </div>
                                                     </td>
                                                 </tr>
