@@ -197,7 +197,6 @@ if (!empty($tugas['link_drive'])) {
     $embed_code = getEmbedCode($tugas['link_drive'], $link_type);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,33 +209,55 @@ if (!empty($tugas['link_drive'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Animate.css untuk animasi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #1a472a;
             --secondary-color: #2d5a40;
+            --accent-color: #5D9C59;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
         }
         
         body {
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f8f9fc;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
             padding-top: 20px;
+            color: #333;
         }
         
         .card {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
         .card-header {
             background-color: white;
-            border-bottom: 1px solid #e3e6f0;
-            padding: 1rem 1.25rem;
-            font-weight: 700;
-            color: #5a5c69;
-            border-top-left-radius: 10px !important;
-            border-top-right-radius: 10px !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .btn {
+            border-radius: 10px;
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
         
         .btn-primary {
@@ -247,6 +268,8 @@ if (!empty($tugas['link_drive'])) {
         .btn-primary:hover {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
         }
         
         .btn-outline-primary {
@@ -257,82 +280,317 @@ if (!empty($tugas['link_drive'])) {
         .btn-outline-primary:hover {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline-warning {
+            color: #d39e00;
+            border-color: var(--warning-color);
+        }
+        
+        .btn-outline-warning:hover {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: #212529;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
         }
         
         .badge {
-            font-weight: 600;
+            font-weight: 500;
             font-size: 0.75rem;
             padding: 0.5em 0.8em;
-            border-radius: 0.5rem;
+            border-radius: 8px;
+            letter-spacing: 0.5px;
         }
         
-        .badge-success {
-            background-color: #1cc88a;
+        .bg-success {
+            background-color: var(--success-color) !important;
         }
         
-        .badge-warning {
-            background-color: #f6c23e;
+        .bg-warning {
+            background-color: var(--warning-color) !important;
         }
         
-        .badge-danger {
-            background-color: #e74a3b;
+        .bg-danger {
+            background-color: var(--danger-color) !important;
         }
         
-        .badge-info {
-            background-color: #36b9cc;
+        .bg-info {
+            background-color: var(--info-color) !important;
         }
         
-        .badge-primary {
-            background-color: #4e73df;
+          .bg-primary {
+            background-color: var(--primary-color) !important;
         }
         
-        .badge-secondary {
-            background-color: #858796;
+        .bg-secondary {
+            background-color: #6c757d !important;
         }
         
         .preview-container {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            background-color: #f9f9f9;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            background-color: white;
             margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .preview-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
         .detail-item {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 10px;
         }
         
         .detail-label {
             font-weight: 600;
-            color: #5a5c69;
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
         }
         
         .detail-value {
             color: #333;
+            font-weight: 500;
         }
         
-        .embed-responsive {
-            position: relative;
-            display: block;
-            width: 100%;
-            padding: 0;
-            overflow: hidden;
+        .alert {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
         }
         
-        .embed-responsive::before {
-            display: block;
-            content: "";
-            padding-top: 56.25%;
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
         }
         
-        .embed-responsive iframe {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+        .alert-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #d39e00;
+        }
+        
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+        
+        .alert-info {
+            background-color: rgba(23, 162, 184, 0.1);
+            color: #17a2b8;
+        }
+        
+        .status-card {
+            border-radius: 15px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
             height: 100%;
-            border: 0;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            padding: 15px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-seen .status-icon {
+            color: var(--success-color);
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+        
+        .status-unseen .status-icon {
+            color: var(--warning-color);
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+        
+        .task-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .task-title:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 4px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+        
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-right: 10px;
+            background-color: rgba(23, 162, 184, 0.1);
+            color: var(--info-color);
+        }
+        
+        .platform-badge i {
+            margin-right: 5px;
+            font-size: 1rem;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        
+        .status-badge i {
+            margin-right: 5px;
+            font-size: 1rem;
+        }
+        
+        .task-info {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .task-info:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .task-meta-item i {
+            margin-right: 5px;
+            font-size: 1rem;
+        }
+        
+        .task-description {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .task-description:before {
+            content: '"';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 2rem;
+            color: rgba(0, 0, 0, 0.1);
+            font-family: serif;
+        }
+        
+        .action-btn {
+            width: 100%;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn i {
+            font-size: 1.1rem;
+        }
+        
+        .preview-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .preview-title:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
         }
     </style>
 </head>
@@ -367,180 +625,210 @@ if (!empty($tugas['link_drive'])) {
                             </a>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
                         <div class="row">
                             <div class="col-md-8">
-                                <div class="detail-item">
-                                    <span class="detail-label">Judul:</span> 
-                                    <h4 class="detail-value"><?= htmlspecialchars($tugas['judul']) ?></h4>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <span class="detail-label">Platform:</span>
-                                    <span class="detail-value badge bg-info"><?= htmlspecialchars($tugas['platform']) ?></span>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <span class="detail-label">Status:</span>
-                                    <?php
-                                    $status_badge = '';
-                                    switch ($tugas['status']) {
-                                        case 'Belum Dikerjakan':
-                                            $status_badge = '<span class="badge bg-secondary"><i class="bi bi-clock"></i> Belum Dikerjakan</span>';
-                                            break;
-                                        case 'Sedang Dikerjakan':
-                                            $status_badge = '<span class="badge bg-primary"><i class="bi bi-gear"></i> Sedang Dikerjakan</span>';
-                                            break;
-                                        case 'Kirim':
-                                            $status_badge = '<span class="badge bg-info"><i class="bi bi-send"></i> Kirim</span>';
-                                            break;
-                                        case 'Selesai':
-                                            $status_badge = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Selesai</span>';
-                                            break;
-                                        case 'Revisi':
-                                            $status_badge = '<span class="badge bg-warning"><i class="bi bi-pencil"></i> Revisi</span>';
-                                            break;
-                                        default:
-                                            $status_badge = '<span class="badge bg-secondary">' . htmlspecialchars($tugas['status']) . '</span>';
-                                    }
-                                    echo $status_badge;
-                                    ?>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <span class="detail-label">Penanggung Jawab:</span>
-                                    <span class="detail-value"><?= htmlspecialchars($tugas['penanggung_jawab']) ?></span>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <span class="detail-label">Tanggal Mulai:</span>
-                                    <span class="detail-value">
-                                        <?= isset($tugas['tanggal_mulai']) ? date('d F Y', strtotime($tugas['tanggal_mulai'])) : 'Tidak ada tanggal' ?>
-                                    </span>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <span class="detail-label">Deadline:</span>
-                                    <span class="detail-value">
-                                        <?php 
-                                        if (isset($tugas['deadline'])) {
-                                            $deadline_date = new DateTime($tugas['deadline']);
-                                            $today = new DateTime();
-                                            $interval = $today->diff($deadline_date);
-                                            $days_remaining = $interval->days;
-                                            
-                                            echo date('d F Y', strtotime($tugas['deadline']));
-                                            
-                                            if ($today > $deadline_date && $tugas['status'] != 'Selesai') {
-                                                echo ' <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Terlewat</span>';
-                                            } elseif ($days_remaining <= 3 && $today <= $deadline_date && $tugas['status'] != 'Selesai') {
-                                                echo ' <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> ' . $days_remaining . ' hari lagi</span>';
-                                            }
-                                        } else {
-                                            echo 'Tidak ada deadline';
+                                <div class="task-info">
+                                    <h2 class="task-title"><?= htmlspecialchars($tugas['judul']) ?></h2>
+                                    
+                                    <div class="task-meta">
+                                        <span class="platform-badge">
+                                            <i class="bi bi-globe"></i> <?= htmlspecialchars($tugas['platform']) ?>
+                                        </span>
+                                        
+                                        <?php
+                                        $status_badge = '';
+                                        switch ($tugas['status']) {
+                                            case 'Belum Dikerjakan':
+                                                $status_badge = '<span class="status-badge bg-secondary text-white"><i class="bi bi-clock"></i> Belum Dikerjakan</span>';
+                                                break;
+                                            case 'Sedang Dikerjakan':
+                                                $status_badge = '<span class="status-badge bg-primary text-white"><i class="bi bi-gear"></i> Sedang Dikerjakan</span>';
+                                                break;
+                                            case 'Kirim':
+                                                $status_badge = '<span class="status-badge bg-info text-white"><i class="bi bi-send"></i> Kirim</span>';
+                                                break;
+                                            case 'Selesai':
+                                                $status_badge = '<span class="status-badge bg-success text-white"><i class="bi bi-check-circle"></i> Selesai</span>';
+                                                break;
+                                            case 'Revisi':
+                                                $status_badge = '<span class="status-badge bg-warning text-dark"><i class="bi bi-pencil"></i> Revisi</span>';
+                                                break;
+                                            default:
+                                                $status_badge = '<span class="status-badge bg-secondary text-white">' . htmlspecialchars($tugas['status']) . '</span>';
                                         }
+                                        echo $status_badge;
                                         ?>
-                                    </span>
-                                </div>
-                                
-                                <?php if (!empty($tugas['deskripsi'])): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Deskripsi:</span>
-                                    <div class="detail-value mt-2">
-                                        <?= nl2br(htmlspecialchars($tugas['deskripsi'])) ?>
                                     </div>
-                                </div>
-                                <?php endif; ?>
-                                
-                                <?php if (!empty($tugas['catatan_admin'])): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Catatan:</span>
-                                    <div class="detail-value mt-2">
-                                        <?= nl2br(htmlspecialchars($tugas['catatan_admin'])) ?>
+                                    
+                                    <!-- Preview link dipindahkan ke sini -->
+                                    <?php if (!empty($tugas['link_drive'])): ?>
+                                    <div class="preview-container animate__animated animate__fadeIn mt-4">
+                                        <h5 class="preview-title">Preview Link</h5>
+                                        <div class="mb-4">
+                                            <?= $embed_code ?>
+                                        </div>
+                                        
+                                        <div class="d-grid">
+                                            <a href="<?= htmlspecialchars($tugas['link_drive']) ?>" target="_blank" class="btn btn-primary action-btn">
+                                                <i class="bi bi-box-arrow-up-right"></i> Buka Link di Tab Baru
+                                            </a>
+                                        </div>
                                     </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="row mt-4">
+                                        <div class="col-md-6">
+                                            <div class="detail-item">
+                                                <span class="detail-label">Penanggung Jawab</span>
+                                                <div class="detail-value d-flex align-items-center">
+                                                    <i class="bi bi-person-circle me-2"></i>
+                                                    <?= htmlspecialchars($tugas['penanggung_jawab']) ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="detail-item">
+                                                <span class="detail-label">Tanggal Mulai</span>
+                                                <div class="detail-value d-flex align-items-center">
+                                                    <i class="bi bi-calendar-check me-2"></i>
+                                                    <?= isset($tugas['tanggal_mulai']) ? date('d F Y', strtotime($tugas['tanggal_mulai'])) : 'Tidak ada tanggal' ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="detail-item">
+                                                <span class="detail-label">Deadline</span>
+                                                <div class="detail-value d-flex align-items-center">
+                                                    <i class="bi bi-calendar-event me-2"></i>
+                                                    <?php 
+                                                    if (isset($tugas['deadline'])) {
+                                                        $deadline_date = new DateTime($tugas['deadline']);
+                                                        $today = new DateTime();
+                                                        $interval = $today->diff($deadline_date);
+                                                        $days_remaining = $interval->days;
+                                                        
+                                                        echo date('d F Y', strtotime($tugas['deadline']));
+                                                        
+                                                        if ($today > $deadline_date && $tugas['status'] != 'Selesai') {
+                                                            echo ' <span class="badge bg-danger ms-2"><i class="bi bi-exclamation-triangle"></i> Terlewat</span>';
+                                                        } elseif ($days_remaining <= 3 && $today <= $deadline_date && $tugas['status'] != 'Selesai') {
+                                                            echo ' <span class="badge bg-warning ms-2"><i class="bi bi-exclamation-circle"></i> ' . $days_remaining . ' hari lagi</span>';
+                                                        }
+                                                    } else {
+                                                        echo 'Tidak ada deadline';
+                                                    }
+                                                    ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <?php if (!empty($tugas['deskripsi'])): ?>
+                                    <div class="detail-item mt-4">
+                                        <span class="detail-label">Deskripsi</span>
+                                        <div class="task-description">
+                                            <?= nl2br(htmlspecialchars($tugas['deskripsi'])) ?>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if (!empty($tugas['catatan_admin'])): ?>
+                                    <div class="detail-item mt-4">
+                                        <span class="detail-label">Catatan Admin</span>
+                                        <div class="task-description" style="background-color: rgba(23, 162, 184, 0.1);">
+                                            <?= nl2br(htmlspecialchars($tugas['catatan_admin'])) ?>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
-                                <?php endif; ?>
                             </div>
                             
                             <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-header bg-light">
-                                        <h6 class="m-0 font-weight-bold">Status Konfirmasi</h6>
+                                <div class="status-card <?= $tugas['dilihat_kabid'] == 1 ? 'status-seen' : 'status-unseen' ?> animate__animated animate__fadeIn">
+                                    <div class="text-center mb-4">
+                                        <div class="status-icon">
+                                            <i class="bi <?= $tugas['dilihat_kabid'] == 1 ? 'bi-eye-fill' : 'bi-eye-slash-fill' ?>"></i>
+                                        </div>
+                                        <h5 class="mt-3 mb-2"><?= $tugas['dilihat_kabid'] == 1 ? 'Sudah Dilihat' : 'Belum Dilihat' ?></h5>
+                                        
+                                        <?php if ($tugas['dilihat_kabid'] == 1 && !empty($tugas['waktu_dilihat_kabid'])): ?>
+                                        <p class="text-muted small">
+                                            <i class="bi bi-clock me-1"></i> 
+                                            Dilihat pada <?= date('d F Y H:i', strtotime($tugas['waktu_dilihat_kabid'])) ?>
+                                        </p>
+                                        <?php endif; ?>
+                                        
+                                        <?php if ($tugas['dilihat_kabid'] == 0): ?>
+                                        <p class="text-muted small">
+                                            Tandai sudah dilihat untuk memindahkan ke daftar tugas yang sudah dikonfirmasi
+                                        </p>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <?php if ($tugas['dilihat_kabid'] == 1): ?>
+                                    <form method="post" action="" class="mb-3">
+                                        <input type="hidden" name="action" value="mark_unseen">
+                                        <button type="submit" class="btn btn-outline-primary action-btn">
+                                            <i class="bi bi-eye-slash"></i> Tandai Belum Dilihat
+                                        </button>
+                                    </form>
+                                    
+                                    <a href="../modules/daftar_tugas_kabid.php" class="btn btn-secondary action-btn">
+                                        <i class="bi bi-list-check"></i> Kembali ke Daftar Tugas
+                                    </a>
+                                    <?php else: ?>
+                                    <form method="post" action="" class="mb-3">
+                                        <input type="hidden" name="action" value="mark_seen">
+                                        <button type="submit" class="btn btn-primary action-btn">
+                                            <i class="bi bi-eye"></i> Tandai Sudah Dilihat
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="post" action="?redirect=list" class="mb-3">
+                                        <input type="hidden" name="action" value="mark_seen">
+                                        <button type="submit" class="btn btn-success action-btn">
+                                            <i class="bi bi-check-circle"></i> Tandai & Kembali ke Daftar
+                                        </button>
+                                    </form>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="card mt-4 animate__animated animate__fadeIn">
+                                    <div class="card-header">
+                                        <h6 class="m-0 font-weight-bold">Informasi Tambahan</h6>
                                     </div>
                                     <div class="card-body">
-                                        <?php if ($tugas['dilihat_kabid'] == 1): ?>
-                                            <div class="alert alert-success mb-3">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="me-3">
-                                                        <i class="bi bi-eye-fill fs-3"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>Sudah dilihat</strong>
-                                                        <?php if (!empty($tugas['waktu_dilihat_kabid'])): ?>
-                                                            <div class="small mt-1">
-                                                                pada <?= date('d F Y H:i', strtotime($tugas['waktu_dilihat_kabid'])) ?>
-                                                            </div>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <form method="post" action="">
-                                                <input type="hidden" name="action" value="mark_unseen">
-                                                <button type="submit" class="btn btn-outline-primary w-100 mb-2">
-                                                    <i class="bi bi-eye-slash"></i> Tandai Belum Dilihat
-                                                </button>
-                                            </form>
-                                            <a href="../modules/daftar_tugas_kabid.php" class="btn btn-secondary w-100">
-                                                <i class="bi bi-list-check"></i> Kembali ke Daftar Tugas
-                                            </a>
-                                        <?php else: ?>
-                                            <div class="alert alert-warning mb-3">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="me-3">
-                                                        <i class="bi bi-eye-slash-fill fs-3"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>Belum dilihat</strong>
-                                                        <div class="small mt-1">
-                                                            Tandai sudah dilihat untuk memindahkan ke daftar tugas yang sudah dikonfirmasi
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <form method="post" action="">
-                                                <input type="hidden" name="action" value="mark_seen">
-                                                <button type="submit" class="btn btn-primary w-100 mb-2">
-                                                    <i class="bi bi-eye"></i> Tandai Sudah Dilihat
-                                                </button>
-                                            </form>
-                                            <form method="post" action="?redirect=list">
-                                                <input type="hidden" name="action" value="mark_seen">
-                                                <button type="submit" class="btn btn-success w-100">
-                                                    <i class="bi bi-check-circle"></i> Tandai & Kembali ke Daftar
-                                                </button>
-                                            </form>
+                                        <div class="task-meta-item mb-3">
+                                            <i class="bi bi-calendar-plus"></i>
+                                            <span class="ms-2">Dibuat: 
+                                                <?= isset($tugas['created_at']) ? date('d F Y', strtotime($tugas['created_at'])) : 'Tidak ada data' ?>
+                                            </span>
+                                        </div>
+                                        
+                                        <?php if (isset($tugas['updated_at'])): ?>
+                                        <div class="task-meta-item mb-3">
+                                            <i class="bi bi-calendar-check"></i>
+                                            <span class="ms-2">Diperbarui: 
+                                                <?= date('d F Y', strtotime($tugas['updated_at'])) ?>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?>
+                                        
+                                        <?php if (isset($tugas['waktu_selesai']) && !empty($tugas['waktu_selesai'])): ?>
+                                        <div class="task-meta-item">
+                                            <i class="bi bi-calendar-check-fill"></i>
+                                            <span class="ms-2">Diselesaikan: 
+                                                <?= date('d F Y', strtotime($tugas['waktu_selesai'])) ?>
+                                            </span>
+                                        </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <?php if (!empty($tugas['link_drive'])): ?>
-                        <div class="mt-4">
-                            <h5 class="mb-3">Preview Link</h5>
-                            <div class="preview-container">
-                                <?= $embed_code ?>
-                                
-                                <div class="mt-3">
-                                    <a href="<?= htmlspecialchars($tugas['link_drive']) ?>" target="_blank" class="btn btn-primary">
-                                        <i class="bi bi-box-arrow-up-right"></i> Buka Link di Tab Baru
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>
