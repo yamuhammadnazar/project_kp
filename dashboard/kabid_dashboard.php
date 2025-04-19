@@ -45,34 +45,34 @@ $query_admin = "SELECT t.* " . $base_query_admin . " ORDER BY t.tanggal_mulai DE
 $result_admin = mysqli_query($conn, $query_admin);
 
 // Menghitung statistik tugas admin
-$stats_query_admin = "SELECT
-   COUNT(*) as total_tugas,
-   SUM(CASE WHEN t.status = 'Belum Dikerjakan' THEN 1 ELSE 0 END) as belum_dikerjakan,
-   SUM(CASE WHEN t.status = 'Sedang Dikerjakan' THEN 1 ELSE 0 END) as sedang_dikerjakan,
-   SUM(CASE WHEN t.status = 'Kirim' THEN 1 ELSE 0 END) as kirim,
-   SUM(CASE WHEN t.status = 'Revisi' THEN 1 ELSE 0 END) as revisi,
-   SUM(CASE WHEN t.status = 'Selesai' THEN 1 ELSE 0 END) as selesai
-   " . $base_query_admin;
+$stats_query_admin = "SELECT 
+  COUNT(*) as total_tugas,
+  SUM(CASE WHEN t.status = 'Belum Dikerjakan' THEN 1 ELSE 0 END) as belum_dikerjakan,
+  SUM(CASE WHEN t.status = 'Sedang Dikerjakan' THEN 1 ELSE 0 END) as sedang_dikerjakan,
+  SUM(CASE WHEN t.status = 'Kirim' THEN 1 ELSE 0 END) as kirim,
+  SUM(CASE WHEN t.status = 'Revisi' THEN 1 ELSE 0 END) as revisi,
+  SUM(CASE WHEN t.status = 'Selesai' THEN 1 ELSE 0 END) as selesai
+  " . $base_query_admin;
 $stats_result_admin = mysqli_query($conn, $stats_query_admin);
 $stats_admin = mysqli_fetch_assoc($stats_result_admin);
 
 // Menghitung tugas yang melewati deadline (untuk tugas admin)
 $overdue_query = "SELECT COUNT(*) as total_overdue
-                  FROM tugas_media t
-                  JOIN users u ON t.penanggung_jawab = u.username
-                  WHERE t.deadline < CURDATE()
-                  AND t.status != 'Selesai'
-                  AND u.role = 'admin'";
+                 FROM tugas_media t
+                 JOIN users u ON t.penanggung_jawab = u.username
+                 WHERE t.deadline < CURDATE()
+                 AND t.status != 'Selesai'
+                 AND u.role = 'admin'";
 $overdue_result = mysqli_query($conn, $overdue_query);
 $overdue = mysqli_fetch_assoc($overdue_result)['total_overdue'];
 
 // Menghitung tugas yang deadline-nya dalam 3 hari ke depan (untuk tugas admin)
 $upcoming_query = "SELECT COUNT(*) as total_upcoming
-                   FROM tugas_media t
-                   JOIN users u ON t.penanggung_jawab = u.username
-                   WHERE t.deadline BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
-                   AND t.status != 'Selesai'
-                   AND u.role = 'admin'";
+                  FROM tugas_media t
+                  JOIN users u ON t.penanggung_jawab = u.username
+                  WHERE t.deadline BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
+                  AND t.status != 'Selesai'
+                  AND u.role = 'admin'";
 $upcoming_result = mysqli_query($conn, $upcoming_query);
 $upcoming = mysqli_fetch_assoc($upcoming_result)['total_upcoming'];
 
@@ -96,9 +96,9 @@ while ($row = mysqli_fetch_assoc($admin_result)) {
 
 // Query untuk mendapatkan jumlah tugas per admin
 $tugas_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
-                FROM tugas_media t
-                JOIN users u ON t.penanggung_jawab = u.username
-                WHERE u.role = 'admin'";
+               FROM tugas_media t
+               JOIN users u ON t.penanggung_jawab = u.username
+               WHERE u.role = 'admin'";
 
 // Tambahkan filter yang sama seperti pada query utama
 if (!empty($bulan) && !empty($tahun)) {
@@ -118,7 +118,6 @@ if (!empty($admin)) {
 }
 
 $tugas_query .= " GROUP BY t.penanggung_jawab";
-
 $tugas_result = mysqli_query($conn, $tugas_query);
 
 // Update jumlah tugas untuk admin yang memiliki tugas
@@ -142,9 +141,10 @@ while ($row = mysqli_fetch_assoc($anggota_result)) {
 
 // Query untuk mendapatkan jumlah tugas per anggota
 $tugas_anggota_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
-                FROM tugas_media t
-                JOIN users u ON t.penanggung_jawab = u.username
-                WHERE u.role = 'anggota'";
+               FROM tugas_media t
+               JOIN users u ON t.penanggung_jawab = u.username
+               WHERE u.role = 'anggota'";
+
 if (!empty($bulan) && !empty($tahun)) {
     $tugas_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
 } elseif (!empty($bulan)) {
@@ -169,9 +169,9 @@ while ($row = mysqli_fetch_assoc($tugas_anggota_result)) {
 
 // Statistik: Platform terbanyak untuk admin (laporan, pemberitahuan, tugas)
 $platform_admin_query = "SELECT t.platform, COUNT(*) as jumlah
-                  FROM tugas_media t
-                  JOIN users u ON t.penanggung_jawab = u.username
-                  WHERE u.role = 'admin'";
+                 FROM tugas_media t
+                 JOIN users u ON t.penanggung_jawab = u.username
+                 WHERE u.role = 'admin'";
 
 // Tambahkan filter yang sama
 if (!empty($bulan) && !empty($tahun)) {
@@ -195,9 +195,9 @@ $platform_admin_result = mysqli_query($conn, $platform_admin_query);
 
 // Statistik: Platform terbanyak untuk anggota (sosial media)
 $platform_anggota_query = "SELECT t.platform, COUNT(*) as jumlah
-                  FROM tugas_media t
-                  JOIN users u ON t.penanggung_jawab = u.username
-                  WHERE u.role = 'anggota'";
+                 FROM tugas_media t
+                 JOIN users u ON t.penanggung_jawab = u.username
+                 WHERE u.role = 'anggota'";
 
 // Tambahkan filter yang sama
 if (!empty($bulan) && !empty($tahun)) {
@@ -215,21 +215,123 @@ if (!empty($status)) {
 $platform_anggota_query .= " GROUP BY t.platform ORDER BY jumlah DESC LIMIT 3";
 $platform_anggota_result = mysqli_query($conn, $platform_anggota_query);
 
-
 // Statistik: Tugas yang sering overdue (untuk tugas admin)
 $overdue_detail_query = "SELECT t.id, t.judul, t.penanggung_jawab, t.deadline, DATEDIFF(CURDATE(), t.deadline) as hari_terlambat
-                        FROM tugas_media t
-                        JOIN users u ON t.penanggung_jawab = u.username
-                        WHERE t.deadline < CURDATE()
-                        AND t.status != 'Selesai'
-                        AND u.role = 'admin'
-                        ORDER BY hari_terlambat DESC
-                        LIMIT 5";
+                       FROM tugas_media t
+                       JOIN users u ON t.penanggung_jawab = u.username
+                       WHERE t.deadline < CURDATE()
+                       AND t.status != 'Selesai'
+                       AND u.role = 'admin'
+                       ORDER BY hari_terlambat DESC
+                       LIMIT 5";
 $overdue_detail_result = mysqli_query($conn, $overdue_detail_query);
 
 // Mendapatkan daftar semua admin untuk filter
 $admin_list_query = "SELECT DISTINCT username FROM users WHERE role = 'admin' ORDER BY username";
 $admin_list_result = mysqli_query($conn, $admin_list_query);
+
+// Query untuk distribusi status tugas admin
+$status_admin_query = "SELECT t.status, COUNT(*) as jumlah
+                      FROM tugas_media t
+                      JOIN users u ON t.penanggung_jawab = u.username
+                      WHERE u.role = 'admin'";
+
+// Tambahkan filter yang sama seperti pada query utama
+if (!empty($bulan) && !empty($tahun)) {
+    $status_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+} elseif (!empty($bulan)) {
+    $status_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+} elseif (!empty($tahun)) {
+    $status_admin_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+}
+
+if (!empty($status)) {
+    $status_admin_query .= " AND t.status = '$status'";
+}
+
+if (!empty($admin)) {
+    $status_admin_query .= " AND t.penanggung_jawab = '$admin'";
+}
+
+$status_admin_query .= " GROUP BY t.status";
+$status_admin_result = mysqli_query($conn, $status_admin_query);
+
+// Query untuk distribusi status tugas anggota
+$status_anggota_query = "SELECT t.status, COUNT(*) as jumlah
+                        FROM tugas_media t
+                        JOIN users u ON t.penanggung_jawab = u.username
+                        WHERE u.role = 'anggota'";
+
+// Tambahkan filter yang sama
+if (!empty($bulan) && !empty($tahun)) {
+    $status_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+} elseif (!empty($bulan)) {
+    $status_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+} elseif (!empty($tahun)) {
+    $status_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+}
+
+if (!empty($status)) {
+    $status_anggota_query .= " AND t.status = '$status'";
+}
+
+$status_anggota_query .= " GROUP BY t.status";
+$status_anggota_result = mysqli_query($conn, $status_anggota_query);
+
+// Persiapkan data untuk JavaScript
+$admin_status_data = [];
+$admin_status_colors = [];
+while ($row = mysqli_fetch_assoc($status_admin_result)) {
+    $admin_status_data[$row['status']] = (int) $row['jumlah'];
+
+    // Tetapkan warna berdasarkan status
+    switch ($row['status']) {
+        case 'Belum Dikerjakan':
+            $admin_status_colors[$row['status']] = '#e74a3b'; // merah
+            break;
+        case 'Sedang Dikerjakan':
+            $admin_status_colors[$row['status']] = '#f6c23e'; // kuning
+            break;
+        case 'Kirim':
+            $admin_status_colors[$row['status']] = '#36b9cc'; // biru
+            break;
+        case 'Revisi':
+            $admin_status_colors[$row['status']] = '#4e73df'; // ungu
+            break;
+        case 'Selesai':
+            $admin_status_colors[$row['status']] = '#1cc88a'; // hijau
+            break;
+        default:
+            $admin_status_colors[$row['status']] = '#858796'; // abu-abu
+    }
+}
+
+$anggota_status_data = [];
+$anggota_status_colors = [];
+while ($row = mysqli_fetch_assoc($status_anggota_result)) {
+    $anggota_status_data[$row['status']] = (int) $row['jumlah'];
+
+    // Tetapkan warna berdasarkan status
+    switch ($row['status']) {
+        case 'Belum Dikerjakan':
+            $anggota_status_colors[$row['status']] = '#e74a3b'; // merah
+            break;
+        case 'Sedang Dikerjakan':
+            $anggota_status_colors[$row['status']] = '#f6c23e'; // kuning
+            break;
+        case 'Kirim':
+            $anggota_status_colors[$row['status']] = '#36b9cc'; // biru
+            break;
+        case 'Revisi':
+            $anggota_status_colors[$row['status']] = '#4e73df'; // ungu
+            break;
+        case 'Selesai':
+            $anggota_status_colors[$row['status']] = '#1cc88a'; // hijau
+            break;
+        default:
+            $anggota_status_colors[$row['status']] = '#858796'; // abu-abu
+    }
+}
 
 // Ekspor ke CSV jika diminta
 if (isset($_GET['export']) && $_GET['export'] == 'csv') {
@@ -311,6 +413,7 @@ $nama_bulan = [
     '12' => 'Desember',
 ];
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -1015,6 +1118,72 @@ $nama_bulan = [
                         </div>
                     </div>
 
+                    <!-- Status Distribution Charts -->
+<div class="row fade-in">
+    <!-- Admin Status Distribution -->
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Distribusi Status Tugas Admin</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie" style="height: 300px;">
+                    <canvas id="statusDistributionAdminChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-danger"></i> Belum Dikerjakan
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-warning"></i> Sedang Dikerjakan
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-info"></i> Kirim
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-primary"></i> Revisi
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-success"></i> Selesai
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Anggota Status Distribution -->
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Distribusi Status Tugas Anggota</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie" style="height: 300px;">
+                    <canvas id="statusDistributionAnggotaChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-danger"></i> Belum Dikerjakan
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-warning"></i> Sedang Dikerjakan
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-info"></i> Kirim
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-primary"></i> Revisi
+                    </span>
+                    <span class="me-2">
+                        <i class="bi bi-circle-fill text-success"></i> Selesai
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
                     <!-- Platform Statistics -->
                     <div class="row fade-in">
                         <!-- Admin Platform -->
@@ -1211,6 +1380,184 @@ $nama_bulan = [
 
             // Check on resize
             window.addEventListener('resize', checkWidth);
+
+            // Data untuk chart status admin dan anggota
+var adminStatusData = <?php echo json_encode(array_keys($admin_status_data)); ?>;
+            var adminStatusValues = <?php echo json_encode(array_values($admin_status_data)); ?>;
+            var adminStatusColors = <?php echo json_encode(array_values($admin_status_colors)); ?>;
+
+            var anggotaStatusData = <?php echo json_encode(array_keys($anggota_status_data)); ?>;
+            var anggotaStatusValues = <?php echo json_encode(array_values($anggota_status_data)); ?>;
+            var anggotaStatusColors = <?php echo json_encode(array_values($anggota_status_colors)); ?>;
+
+            // Fungsi untuk membuat pie chart status admin
+            function createStatusAdminChart() {
+                var ctx = document.getElementById('statusDistributionAdminChart');
+                if (ctx) {
+                    // Destroy existing chart if it exists
+                    if (window.statusAdminPieChart) {
+                        window.statusAdminPieChart.destroy();
+                    }
+
+                    // Cek apakah ada data
+                    if (adminStatusValues.length === 0) {
+                        // Tampilkan pesan jika tidak ada data
+                        ctx.height = 100;
+                        var ctxContext = ctx.getContext('2d');
+                        ctxContext.font = '16px Arial';
+                        ctxContext.textAlign = 'center';
+                        ctxContext.fillStyle = '#858796';
+                        ctxContext.fillText('Tidak ada data status untuk ditampilkan', ctx.width / 2, 50);
+                        return;
+                    }
+
+                    ctx = ctx.getContext('2d');
+                    window.statusAdminPieChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: adminStatusData,
+                            datasets: [{
+                                data: adminStatusValues,
+                                backgroundColor: adminStatusColors,
+                                hoverBackgroundColor: adminStatusColors,
+                                hoverBorderColor: "rgba(234, 236, 244, 1)",
+                            }],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            tooltips: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem, data) {
+                                        var dataset = data.datasets[tooltipItem.datasetIndex];
+                                        var total = dataset.data.reduce(function (previousValue, currentValue) {
+                                            return previousValue + currentValue;
+                                        });
+                                        var currentValue = dataset.data[tooltipItem.index];
+                                        var percentage = Math.round((currentValue / total) * 100);
+                                        return data.labels[tooltipItem.index] + ': ' + currentValue + ' (' + percentage + '%)';
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    fontColor: '#858796',
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            cutoutPercentage: 70,
+                            animation: {
+                                animateScale: true,
+                                animateRotate: true,
+                                duration: 1000,
+                                easing: 'easeOutQuart'
+                            },
+                            elements: {
+                                arc: {
+                                    borderWidth: 0
+                                }
+                            }
+                        },
+                    });
+                }
+            }
+
+            // Fungsi untuk membuat pie chart status anggota
+            function createStatusAnggotaChart() {
+                var ctx = document.getElementById('statusDistributionAnggotaChart');
+                if (ctx) {
+                    // Destroy existing chart if it exists
+                    if (window.statusAnggotaPieChart) {
+                        window.statusAnggotaPieChart.destroy();
+                    }
+
+                    // Cek apakah ada data
+                    if (anggotaStatusValues.length === 0) {
+                        // Tampilkan pesan jika tidak ada data
+                        ctx.height = 100;
+                        var ctxContext = ctx.getContext('2d');
+                        ctxContext.font = '16px Arial';
+                        ctxContext.textAlign = 'center';
+                        ctxContext.fillStyle = '#858796';
+                        ctxContext.fillText('Tidak ada data status untuk ditampilkan', ctx.width / 2, 50);
+                        return;
+                    }
+
+                    ctx = ctx.getContext('2d');
+                    window.statusAnggotaPieChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: anggotaStatusData,
+                            datasets: [{
+                                data: anggotaStatusValues,
+                                backgroundColor: anggotaStatusColors,
+                                hoverBackgroundColor: anggotaStatusColors,
+                                hoverBorderColor: "rgba(234, 236, 244, 1)",
+                            }],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            tooltips: {
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem, data) {
+                                        var dataset = data.datasets[tooltipItem.datasetIndex];
+                                        var total = dataset.data.reduce(function (previousValue, currentValue) {
+                                            return previousValue + currentValue;
+                                        });
+                                        var currentValue = dataset.data[tooltipItem.index];
+                                        var percentage = Math.round((currentValue / total) * 100);
+                                        return data.labels[tooltipItem.index] + ': ' + currentValue + ' (' + percentage + '%)';
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    fontColor: '#858796',
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            cutoutPercentage: 70,
+                            animation: {
+                                animateScale: true,
+                                animateRotate: true,
+                                duration: 1000,
+                                easing: 'easeOutQuart'
+                            },
+                            elements: {
+                                arc: {
+                                    borderWidth: 0
+                                }
+                            }
+                        },
+                    });
+                }
+            }
+
+            // Panggil fungsi untuk membuat pie charts
+            createStatusAdminChart();
+            createStatusAnggotaChart();
+
 
             // Chart code - memastikan ini dijalankan setelah DOM dimuat
             var adminData = <?php echo json_encode($admin_data); ?>;
