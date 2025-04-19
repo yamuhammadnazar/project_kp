@@ -167,15 +167,54 @@ while ($row = mysqli_fetch_assoc($tugas_anggota_result)) {
     }
 }
 
-// Statistik: Platform terbanyak (untuk tugas admin)
-$platform_query = "SELECT t.platform, COUNT(*) as jumlah
+// Statistik: Platform terbanyak untuk admin (laporan, pemberitahuan, tugas)
+$platform_admin_query = "SELECT t.platform, COUNT(*) as jumlah
                   FROM tugas_media t
                   JOIN users u ON t.penanggung_jawab = u.username
-                  WHERE u.role = 'admin'
-                  GROUP BY t.platform
-                  ORDER BY jumlah DESC
-                  LIMIT 3";
-$platform_result = mysqli_query($conn, $platform_query);
+                  WHERE u.role = 'admin'";
+
+// Tambahkan filter yang sama
+if (!empty($bulan) && !empty($tahun)) {
+    $platform_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+} elseif (!empty($bulan)) {
+    $platform_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+} elseif (!empty($tahun)) {
+    $platform_admin_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+}
+
+if (!empty($status)) {
+    $platform_admin_query .= " AND t.status = '$status'";
+}
+
+if (!empty($admin)) {
+    $platform_admin_query .= " AND t.penanggung_jawab = '$admin'";
+}
+
+$platform_admin_query .= " GROUP BY t.platform ORDER BY jumlah DESC LIMIT 3";
+$platform_admin_result = mysqli_query($conn, $platform_admin_query);
+
+// Statistik: Platform terbanyak untuk anggota (sosial media)
+$platform_anggota_query = "SELECT t.platform, COUNT(*) as jumlah
+                  FROM tugas_media t
+                  JOIN users u ON t.penanggung_jawab = u.username
+                  WHERE u.role = 'anggota'";
+
+// Tambahkan filter yang sama
+if (!empty($bulan) && !empty($tahun)) {
+    $platform_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+} elseif (!empty($bulan)) {
+    $platform_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+} elseif (!empty($tahun)) {
+    $platform_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+}
+
+if (!empty($status)) {
+    $platform_anggota_query .= " AND t.status = '$status'";
+}
+
+$platform_anggota_query .= " GROUP BY t.platform ORDER BY jumlah DESC LIMIT 3";
+$platform_anggota_result = mysqli_query($conn, $platform_anggota_query);
+
 
 // Statistik: Tugas yang sering overdue (untuk tugas admin)
 $overdue_detail_query = "SELECT t.id, t.judul, t.penanggung_jawab, t.deadline, DATEDIFF(CURDATE(), t.deadline) as hari_terlambat
@@ -1049,132 +1088,36 @@ $nama_bulan = [
                         </div>
                     </div>
 
-
-
-                    <!-- Recent Tasks and Overdue Tasks -->
-                    <div class="row fade-in">
-                        <div class="col-lg-6">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h6 class="m-0 font-weight-bold">Tugas Terbaru</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Judul</th>
-                                                    <th>Status</th>
-                                                    <th>Deadline</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                mysqli_data_seek($result_admin, 0);
-                                                $count = 0;
-                                                while ($row = mysqli_fetch_assoc($result_admin)) {
-                                                    if ($count >= 5) {
-                                                        break;
-                                                    }
-
-                                                    $deadline_date = isset($row['deadline']) ? new DateTime($row['deadline']) : new DateTime();
-                                                    $today = new DateTime();
-                                                    $interval = $today->diff($deadline_date);
-                                                    $days_remaining = $interval->days;
-                                                    $deadline_class = 'deadline-normal';
-
-                                                    if (isset($row['deadline'])) {
-                                                        if ($today > $deadline_date && $row['status'] != 'Selesai') {
-                                                            $deadline_class = 'deadline-danger';
-                                                        } elseif ($days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
-                                                            $deadline_class = 'deadline-warning';
-                                                        }
-                                                    }
-
-                                                    $status_class = '';
-                                                    switch ($row['status']) {
-                                                        case 'Belum Dikerjakan':
-                                                            $status_class = 'status-belum';
-                                                            break;
-                                                        case 'Sedang Dikerjakan':
-                                                            $status_class = 'status-sedang';
-                                                            break;
-                                                        case 'Kirim':
-                                                            $status_class = 'status-kirim';
-                                                            break;
-                                                        case 'Revisi':
-                                                            $status_class = 'status-revisi';
-                                                            break;
-                                                        case 'Selesai':
-                                                            $status_class = 'status-selesai';
-                                                            break;
-                                                    }
-                                                    ?>
-                                                    <tr>
-                                                        <td><?php echo $row['judul']; ?></td>
-                                                        <td><span
-                                                                class="badge                                                                           <?php echo $status_class; ?>"><?php echo $row['status']; ?></span>
-                                                        </td>
-                                                        <td class="<?php echo $deadline_class; ?>">
-                                                            <?php
-                                                            if (isset($row['deadline'])) {
-                                                                echo date('d/m/Y', strtotime($row['deadline']));
-                                                                if ($today > $deadline_date && $row['status'] != 'Selesai') {
-                                                                    echo " <span class='text-danger'>(Terlewat)</span>";
-                                                                } elseif ($days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
-                                                                    echo " <span class='text-warning'>($days_remaining hari lagi)</span>";
-                                                                }
-                                                            } else {
-                                                                echo "Tidak ada deadline";
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                    </tr>
-                                                    <?php
-                                                    $count++;
-                                                }
-
-                                                if ($count == 0) {
-                                                    echo "<tr><td colspan='3' class='text-center'>Tidak ada tugas yang ditemukan</td></tr>";
-                                                }
-                                                ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-6">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h6 class="m-0 font-weight-bold">Tugas Melewati Deadline</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Judul</th>
-                                                    <th>Admin</th>
-                                                    <th>Terlambat</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                if (mysqli_num_rows($overdue_detail_result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($overdue_detail_result)) {
+                    <!-- Platform Statistics -->
+<div class="row fade-in">
+    <!-- Admin Platform -->
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Platform Admin Terbanyak</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Platform</th>
+                                <th>Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                                                if (mysqli_num_rows($platform_admin_result) > 0) {
+                                                    while ($row = mysqli_fetch_assoc($platform_admin_result)) {
                                                         ?>
                                                         <tr>
-                                                            <td><?php echo $row['judul']; ?></td>
-                                                            <td><?php echo $row['penanggung_jawab']; ?></td>
-                                                            <td class="text-danger"><?php echo $row['hari_terlambat']; ?> hari
-                                                            </td>
+                                                            <td><?php echo $row['platform']; ?></td>
+                                                            <td><span class="badge bg-primary"><?php echo $row['jumlah']; ?></span></td>
                                                         </tr>
                                                         <?php
                                                     }
                                                 } else {
-                                                    echo "<tr><td colspan='3' class='text-center'>Tidak ada tugas yang melewati deadline</td></tr>";
+                                                    echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
                                                 }
                                                 ?>
                                             </tbody>
@@ -1183,14 +1126,12 @@ $nama_bulan = [
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Platform Statistics -->
-                    <div class="row fade-in">
-                        <div class="col-lg-12">
+                    
+                        <!-- Anggota Platform -->
+                        <div class="col-lg-6">
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <h6 class="m-0 font-weight-bold">Platform Terbanyak</h6>
+                                    <h6 class="m-0 font-weight-bold">Platform Anggota Terbanyak</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -1203,14 +1144,12 @@ $nama_bulan = [
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                if (mysqli_num_rows($platform_result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($platform_result)) {
+                                                if (mysqli_num_rows($platform_anggota_result) > 0) {
+                                                    while ($row = mysqli_fetch_assoc($platform_anggota_result)) {
                                                         ?>
                                                         <tr>
                                                             <td><?php echo $row['platform']; ?></td>
-                                                            <td><span
-                                                                    class="badge bg-primary"><?php echo $row['jumlah']; ?></span>
-                                                            </td>
+                                                            <td><span class="badge bg-info"><?php echo $row['jumlah']; ?></span></td>
                                                         </tr>
                                                         <?php
                                                     }
@@ -1225,6 +1164,8 @@ $nama_bulan = [
                             </div>
                         </div>
                     </div>
+
+                   
 
                 </div>
             </div>
