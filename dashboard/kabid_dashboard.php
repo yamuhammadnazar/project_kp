@@ -1015,6 +1015,86 @@ $nama_bulan = [
                         </div>
                     </div>
 
+                    <!-- Platform Statistics -->
+                    <div class="row fade-in">
+                        <!-- Admin Platform -->
+                        <div class="col-lg-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="m-0 font-weight-bold">Platform Admin Terbanyak</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Platform</th>
+                                                    <th>Jumlah</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                if (mysqli_num_rows($platform_admin_result) > 0) {
+                                                    while ($row = mysqli_fetch_assoc($platform_admin_result)) {
+                                                        ?>
+                                                        <tr>
+                                                            <td><?php echo $row['platform']; ?></td>
+                                                            <td><span
+                                                                    class="badge bg-primary"><?php echo $row['jumlah']; ?></span>
+                                                            </td>
+                                                        </tr>
+                                                        <?php
+                                                    }
+                                                } else {
+                                                    echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
+                                                }
+                                                ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Anggota Platform -->
+                        <div class="col-lg-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="m-0 font-weight-bold">Platform Anggota Terbanyak</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Platform</th>
+                                                    <th>Jumlah</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                if (mysqli_num_rows($platform_anggota_result) > 0) {
+                                                    while ($row = mysqli_fetch_assoc($platform_anggota_result)) {
+                                                        ?>
+                                                        <tr>
+                                                            <td><?php echo $row['platform']; ?></td>
+                                                            <td><span class="badge bg-info"><?php echo $row['jumlah']; ?></span>
+                                                            </td>
+                                                        </tr>
+                                                        <?php
+                                                    }
+                                                } else {
+                                                    echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
+                                                }
+                                                ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Distribusi Tugas Charts - Row -->
                     <div class="row fade-in">
                         <!-- Admin Chart -->
@@ -1087,86 +1167,6 @@ $nama_bulan = [
                             </div>
                         </div>
                     </div>
-
-                    <!-- Platform Statistics -->
-<div class="row fade-in">
-    <!-- Admin Platform -->
-    <div class="col-lg-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="m-0 font-weight-bold">Platform Admin Terbanyak</h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Platform</th>
-                                <th>Jumlah</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                                                if (mysqli_num_rows($platform_admin_result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($platform_admin_result)) {
-                                                        ?>
-                                                        <tr>
-                                                            <td><?php echo $row['platform']; ?></td>
-                                                            <td><span class="badge bg-primary"><?php echo $row['jumlah']; ?></span></td>
-                                                        </tr>
-                                                        <?php
-                                                    }
-                                                } else {
-                                                    echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
-                                                }
-                                                ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <!-- Anggota Platform -->
-                        <div class="col-lg-6">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h6 class="m-0 font-weight-bold">Platform Anggota Terbanyak</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Platform</th>
-                                                    <th>Jumlah</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                if (mysqli_num_rows($platform_anggota_result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($platform_anggota_result)) {
-                                                        ?>
-                                                        <tr>
-                                                            <td><?php echo $row['platform']; ?></td>
-                                                            <td><span class="badge bg-info"><?php echo $row['jumlah']; ?></span></td>
-                                                        </tr>
-                                                        <?php
-                                                    }
-                                                } else {
-                                                    echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
-                                                }
-                                                ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                   
-
                 </div>
             </div>
         </div>
