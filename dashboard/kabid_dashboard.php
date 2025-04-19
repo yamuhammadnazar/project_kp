@@ -98,8 +98,27 @@ while ($row = mysqli_fetch_assoc($admin_result)) {
 $tugas_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
                 FROM tugas_media t
                 JOIN users u ON t.penanggung_jawab = u.username
-                WHERE u.role = 'admin'
-                GROUP BY t.penanggung_jawab";
+                WHERE u.role = 'admin'";
+
+// Tambahkan filter yang sama seperti pada query utama
+if (!empty($bulan) && !empty($tahun)) {
+    $tugas_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+} elseif (!empty($bulan)) {
+    $tugas_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+} elseif (!empty($tahun)) {
+    $tugas_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+}
+
+if (!empty($status)) {
+    $tugas_query .= " AND t.status = '$status'";
+}
+
+if (!empty($admin)) {
+    $tugas_query .= " AND t.penanggung_jawab = '$admin'";
+}
+
+$tugas_query .= " GROUP BY t.penanggung_jawab";
+
 $tugas_result = mysqli_query($conn, $tugas_query);
 
 // Update jumlah tugas untuk admin yang memiliki tugas
@@ -125,8 +144,20 @@ while ($row = mysqli_fetch_assoc($anggota_result)) {
 $tugas_anggota_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
                 FROM tugas_media t
                 JOIN users u ON t.penanggung_jawab = u.username
-                WHERE u.role = 'anggota'
-                GROUP BY t.penanggung_jawab";
+                WHERE u.role = 'anggota'";
+if (!empty($bulan) && !empty($tahun)) {
+    $tugas_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+} elseif (!empty($bulan)) {
+    $tugas_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+} elseif (!empty($tahun)) {
+    $tugas_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+}
+
+if (!empty($status)) {
+    $tugas_anggota_query .= " AND t.status = '$status'";
+}
+
+$tugas_anggota_query .= " GROUP BY t.penanggung_jawab";
 $tugas_anggota_result = mysqli_query($conn, $tugas_anggota_query);
 
 // Update jumlah tugas untuk anggota yang memiliki tugas
@@ -1207,329 +1238,329 @@ $nama_bulan = [
     <!-- Custom JS -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-    // Menandai body sudah dimuat
-    document.body.classList.add('loaded');
-    
-    // Toggle sidebar
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarWrapper = document.getElementById('sidebar-wrapper');
-    const contentWrapper = document.getElementById('content-wrapper');
-    
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function (e) {
-            e.preventDefault();
-            sidebarWrapper.classList.toggle('collapsed');
-            contentWrapper.classList.toggle('expanded');
-        });
-    }
-    
-    // Responsive behavior
-    function checkWidth() {
-        if (window.innerWidth < 768) {
-            sidebarWrapper.classList.add('collapsed');
-            contentWrapper.classList.add('expanded');
-        } else {
-            sidebarWrapper.classList.remove('collapsed');
-            contentWrapper.classList.remove('expanded');
-        }
-    }
-    
-    // Check on load
-    checkWidth();
-    
-    // Check on resize
-    window.addEventListener('resize', checkWidth);
-    
-    // Chart code - memastikan ini dijalankan setelah DOM dimuat
-    var adminData = <?php echo json_encode($admin_data); ?>;
-                var anggotaData = <?php echo json_encode($anggota_data); ?>;
+            // Menandai body sudah dimuat
+            document.body.classList.add('loaded');
 
-                // Persiapkan data untuk chart admin
-                var adminChartData = [];
-                for (var admin in adminData) {
-                    if (adminData.hasOwnProperty(admin)) {
-                        adminChartData.push({
-                            name: admin,
-                            value: adminData[admin]
-                        });
-                    }
+            // Toggle sidebar
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarWrapper = document.getElementById('sidebar-wrapper');
+            const contentWrapper = document.getElementById('content-wrapper');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    sidebarWrapper.classList.toggle('collapsed');
+                    contentWrapper.classList.toggle('expanded');
+                });
+            }
+
+            // Responsive behavior
+            function checkWidth() {
+                if (window.innerWidth < 768) {
+                    sidebarWrapper.classList.add('collapsed');
+                    contentWrapper.classList.add('expanded');
+                } else {
+                    sidebarWrapper.classList.remove('collapsed');
+                    contentWrapper.classList.remove('expanded');
                 }
+            }
 
-                // Persiapkan data untuk chart anggota
-                var anggotaChartData = [];
-                for (var anggota in anggotaData) {
-                    if (anggotaData.hasOwnProperty(anggota)) {
-                        anggotaChartData.push({
-                            name: anggota,
-                            value: anggotaData[anggota]
-                        });
-                    }
-                }
+            // Check on load
+            checkWidth();
 
-                // Fungsi untuk membuat chart admin
-                function createAdminChart(sortBy = 'name') {
-                    // Sort data
-                    adminChartData.sort((a, b) => {
-                        if (sortBy === 'name') {
-                            return a.name.localeCompare(b.name);
-                        } else {
-                            return b.value - a.value;
-                        }
+            // Check on resize
+            window.addEventListener('resize', checkWidth);
+
+            // Chart code - memastikan ini dijalankan setelah DOM dimuat
+            var adminData = <?php echo json_encode($admin_data); ?>;
+            var anggotaData = <?php echo json_encode($anggota_data); ?>;
+
+            // Persiapkan data untuk chart admin
+            var adminChartData = [];
+            for (var admin in adminData) {
+                if (adminData.hasOwnProperty(admin)) {
+                    adminChartData.push({
+                        name: admin,
+                        value: adminData[admin]
                     });
+                }
+            }
 
-                    // Prepare chart data
-                    var labels = adminChartData.map(item => item.name);
-                    var values = adminChartData.map(item => item.value);
+            // Persiapkan data untuk chart anggota
+            var anggotaChartData = [];
+            for (var anggota in anggotaData) {
+                if (anggotaData.hasOwnProperty(anggota)) {
+                    anggotaChartData.push({
+                        name: anggota,
+                        value: anggotaData[anggota]
+                    });
+                }
+            }
 
-                    // Pastikan elemen canvas ada sebelum membuat chart
-                    var ctx = document.getElementById('distribusiTugasAdminChart');
-                    if (ctx) {
-                        // Destroy existing chart if it exists
-                        if (window.adminBarChart) {
-                            window.adminBarChart.destroy();
-                        }
+            // Fungsi untuk membuat chart admin
+            function createAdminChart(sortBy = 'name') {
+                // Sort data
+                adminChartData.sort((a, b) => {
+                    if (sortBy === 'name') {
+                        return a.name.localeCompare(b.name);
+                    } else {
+                        return b.value - a.value;
+                    }
+                });
 
-                        ctx = ctx.getContext('2d');
-                        window.adminBarChart = new Chart(ctx, {
-                            type: 'horizontalBar',
-                            data: {
-                                labels: labels,
-                                datasets: [
-                                    {
-                                        label: 'Jumlah Tugas',
-                                        backgroundColor: '#4e73df',
-                                        hoverBackgroundColor: '#2e59d9',
-                                        borderColor: '#4e73df',
-                                        borderWidth: 1,
-                                        data: values,
-                                    }
-                                ],
-                            },
-                            options: {
-                                maintainAspectRatio: false,
-                                layout: {
-                                    padding: {
-                                        left: 10,
-                                        right: 25,
-                                        top: 25,
-                                        bottom: 0
-                                    }
-                                },
-                                scales: {
-                                    xAxes: [{
-                                        ticks: {
-                                            beginAtZero: true,
-                                            precision: 0,
-                                            fontColor: '#858796',
-                                            fontStyle: 'bold'
-                                        },
-                                        gridLines: {
-                                            display: false,
-                                            drawBorder: false
-                                        },
-                                        scaleLabel: {
-                                            display: true,
-                                            labelString: 'Jumlah Tugas',
-                                            fontColor: '#858796',
-                                            fontSize: 12
-                                        }
-                                    }],
-                                    yAxes: [{
-                                        gridLines: {
-                                            color: "rgb(234, 236, 244)",
-                                            zeroLineColor: "rgb(234, 236, 244)",
-                                            drawBorder: false,
-                                            borderDash: [2],
-                                            zeroLineBorderDash: [2]
-                                        },
-                                        ticks: {
-                                            fontColor: '#858796'
-                                        }
-                                    }],
-                                },
-                                legend: {
-                                    display: false
-                                },
-                                tooltips: {
-                                    titleMarginBottom: 10,
-                                    titleFontColor: '#6e707e',
-                                    titleFontSize: 14,
-                                    backgroundColor: "rgb(255,255,255)",
-                                    bodyFontColor: "#858796",
-                                    borderColor: '#dddfeb',
+                // Prepare chart data
+                var labels = adminChartData.map(item => item.name);
+                var values = adminChartData.map(item => item.value);
+
+                // Pastikan elemen canvas ada sebelum membuat chart
+                var ctx = document.getElementById('distribusiTugasAdminChart');
+                if (ctx) {
+                    // Destroy existing chart if it exists
+                    if (window.adminBarChart) {
+                        window.adminBarChart.destroy();
+                    }
+
+                    ctx = ctx.getContext('2d');
+                    window.adminBarChart = new Chart(ctx, {
+                        type: 'horizontalBar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Jumlah Tugas',
+                                    backgroundColor: '#4e73df',
+                                    hoverBackgroundColor: '#2e59d9',
+                                    borderColor: '#4e73df',
                                     borderWidth: 1,
-                                    xPadding: 15,
-                                    yPadding: 15,
-                                    displayColors: false,
-                                    caretPadding: 10,
-                                    callbacks: {
-                                        label: function (tooltipItem, chart) {
-                                            return 'Admin: ' + tooltipItem.xLabel + ' tugas';
-                                        }
+                                    data: values,
+                                }
+                            ],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    left: 10,
+                                    right: 25,
+                                    top: 25,
+                                    bottom: 0
+                                }
+                            },
+                            scales: {
+                                xAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        precision: 0,
+                                        fontColor: '#858796',
+                                        fontStyle: 'bold'
+                                    },
+                                    gridLines: {
+                                        display: false,
+                                        drawBorder: false
+                                    },
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Jumlah Tugas',
+                                        fontColor: '#858796',
+                                        fontSize: 12
                                     }
-                                },
-                                animation: {
-                                    duration: 1000,
-                                    easing: 'easeOutQuart'
-                                },
-                                onClick: function (e, items) {
-                                    if (items.length > 0) {
-                                        var index = items[0]._index;
-                                        var username = labels[index];
-                                        // Redirect to filtered tasks page
-                                        window.location.href = '../modules/daftar_tugas_kabid.php?penanggung_jawab=' + encodeURIComponent(username);
+                                }],
+                                yAxes: [{
+                                    gridLines: {
+                                        color: "rgb(234, 236, 244)",
+                                        zeroLineColor: "rgb(234, 236, 244)",
+                                        drawBorder: false,
+                                        borderDash: [2],
+                                        zeroLineBorderDash: [2]
+                                    },
+                                    ticks: {
+                                        fontColor: '#858796'
+                                    }
+                                }],
+                            },
+                            legend: {
+                                display: false
+                            },
+                            tooltips: {
+                                titleMarginBottom: 10,
+                                titleFontColor: '#6e707e',
+                                titleFontSize: 14,
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem, chart) {
+                                        return 'Admin: ' + tooltipItem.xLabel + ' tugas';
                                     }
                                 }
-                            }
-                        });
-                    }
-                }
-
-                // Fungsi untuk membuat chart anggota
-                function createAnggotaChart(sortBy = 'name') {
-                    // Sort data
-                    anggotaChartData.sort((a, b) => {
-                        if (sortBy === 'name') {
-                            return a.name.localeCompare(b.name);
-                        } else {
-                            return b.value - a.value;
-                        }
-                    });
-
-                    // Prepare chart data
-                    var labels = anggotaChartData.map(item => item.name);
-                    var values = anggotaChartData.map(item => item.value);
-
-                    // Pastikan elemen canvas ada sebelum membuat chart
-                    var ctx = document.getElementById('distribusiTugasAnggotaChart');
-                    if (ctx) {
-                        // Destroy existing chart if it exists
-                        if (window.anggotaBarChart) {
-                            window.anggotaBarChart.destroy();
-                        }
-
-                        ctx = ctx.getContext('2d');
-                        window.anggotaBarChart = new Chart(ctx, {
-                            type: 'horizontalBar',
-                            data: {
-                                labels: labels,
-                                datasets: [
-                                    {
-                                        label: 'Jumlah Tugas',
-                                        backgroundColor: '#36b9cc',
-                                        hoverBackgroundColor: '#2c9faf',
-                                        borderColor: '#36b9cc',
-                                        borderWidth: 1,
-                                        data: values,
-                                    }
-                                ],
                             },
-                            options: {
-                                maintainAspectRatio: false,
-                                layout: {
-                                    padding: {
-                                        left: 10,
-                                        right: 25,
-                                        top: 25,
-                                        bottom: 0
-                                    }
-                                },
-                                scales: {
-                                    xAxes: [{
-                                        ticks: {
-                                            beginAtZero: true,
-                                            precision: 0,
-                                            fontColor: '#858796',
-                                            fontStyle: 'bold'
-                                        },
-                                        gridLines: {
-                                            display: false,
-                                            drawBorder: false
-                                        },
-                                        scaleLabel: {
-                                            display: true,
-                                            labelString: 'Jumlah Tugas',
-                                            fontColor: '#858796',
-                                            fontSize: 12
-                                        }
-                                    }],
-                                    yAxes: [{
-                                        gridLines: {
-                                            color: "rgb(234, 236, 244)",
-                                            zeroLineColor: "rgb(234, 236, 244)",
-                                            drawBorder: false,
-                                            borderDash: [2],
-                                            zeroLineBorderDash: [2]
-                                        },
-                                        ticks: {
-                                            fontColor: '#858796'
-                                        }
-                                    }],
-                                },
-                                legend: {
-                                    display: false
-                                },
-                                tooltips: {
-                                    titleMarginBottom: 10,
-                                    titleFontColor: '#6e707e',
-                                    titleFontSize: 14,
-                                    backgroundColor: "rgb(255,255,255)",
-                                    bodyFontColor: "#858796",
-                                    borderColor: '#dddfeb',
-                                    borderWidth: 1,
-                                    xPadding: 15,
-                                    yPadding: 15,
-                                    displayColors: false,
-                                    caretPadding: 10,
-                                    callbacks: {
-                                        label: function (tooltipItem, chart) {
-                                            return 'Anggota: ' + tooltipItem.xLabel + ' tugas';
-                                        }
-                                    }
-                                },
-                                animation: {
-                                    duration: 1000,
-                                    easing: 'easeOutQuart'
-                                },
-                                onClick: function (e, items) {
-                                    if (items.length > 0) {
-                                        var index = items[0]._index;
-                                        var username = labels[index];
-                                        // Redirect to filtered tasks page
-                                        window.location.href = '../modules/daftar_tugas_kabid.php?penanggung_jawab=' + encodeURIComponent(username);
-                                    }
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeOutQuart'
+                            },
+                            onClick: function (e, items) {
+                                if (items.length > 0) {
+                                    var index = items[0]._index;
+                                    var username = labels[index];
+                                    // Redirect to filtered tasks page
+                                    window.location.href = '../modules/daftar_tugas_kabid.php?penanggung_jawab=' + encodeURIComponent(username);
                                 }
                             }
-                        });
-                    }
+                        }
+                    });
                 }
+            }
 
-                // Create initial charts
-                createAdminChart();
-                createAnggotaChart();
-
-                // Add event listeners for sorting options - Admin
-                document.getElementById('sortAdminByName').addEventListener('click', function (e) {
-                    e.preventDefault();
-                    createAdminChart('name');
+            // Fungsi untuk membuat chart anggota
+            function createAnggotaChart(sortBy = 'name') {
+                // Sort data
+                anggotaChartData.sort((a, b) => {
+                    if (sortBy === 'name') {
+                        return a.name.localeCompare(b.name);
+                    } else {
+                        return b.value - a.value;
+                    }
                 });
 
-                document.getElementById('sortAdminByValue').addEventListener('click', function (e) {
-                    e.preventDefault();
-                    createAdminChart('value');
-                });
+                // Prepare chart data
+                var labels = anggotaChartData.map(item => item.name);
+                var values = anggotaChartData.map(item => item.value);
 
-                // Add event listeners for sorting options - Anggota
-                document.getElementById('sortAnggotaByName').addEventListener('click', function (e) {
-                    e.preventDefault();
-                    createAnggotaChart('name');
-                });
+                // Pastikan elemen canvas ada sebelum membuat chart
+                var ctx = document.getElementById('distribusiTugasAnggotaChart');
+                if (ctx) {
+                    // Destroy existing chart if it exists
+                    if (window.anggotaBarChart) {
+                        window.anggotaBarChart.destroy();
+                    }
 
-                document.getElementById('sortAnggotaByValue').addEventListener('click', function (e) {
-                    e.preventDefault();
-                    createAnggotaChart('value');
-                });
+                    ctx = ctx.getContext('2d');
+                    window.anggotaBarChart = new Chart(ctx, {
+                        type: 'horizontalBar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Jumlah Tugas',
+                                    backgroundColor: '#36b9cc',
+                                    hoverBackgroundColor: '#2c9faf',
+                                    borderColor: '#36b9cc',
+                                    borderWidth: 1,
+                                    data: values,
+                                }
+                            ],
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    left: 10,
+                                    right: 25,
+                                    top: 25,
+                                    bottom: 0
+                                }
+                            },
+                            scales: {
+                                xAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        precision: 0,
+                                        fontColor: '#858796',
+                                        fontStyle: 'bold'
+                                    },
+                                    gridLines: {
+                                        display: false,
+                                        drawBorder: false
+                                    },
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Jumlah Tugas',
+                                        fontColor: '#858796',
+                                        fontSize: 12
+                                    }
+                                }],
+                                yAxes: [{
+                                    gridLines: {
+                                        color: "rgb(234, 236, 244)",
+                                        zeroLineColor: "rgb(234, 236, 244)",
+                                        drawBorder: false,
+                                        borderDash: [2],
+                                        zeroLineBorderDash: [2]
+                                    },
+                                    ticks: {
+                                        fontColor: '#858796'
+                                    }
+                                }],
+                            },
+                            legend: {
+                                display: false
+                            },
+                            tooltips: {
+                                titleMarginBottom: 10,
+                                titleFontColor: '#6e707e',
+                                titleFontSize: 14,
+                                backgroundColor: "rgb(255,255,255)",
+                                bodyFontColor: "#858796",
+                                borderColor: '#dddfeb',
+                                borderWidth: 1,
+                                xPadding: 15,
+                                yPadding: 15,
+                                displayColors: false,
+                                caretPadding: 10,
+                                callbacks: {
+                                    label: function (tooltipItem, chart) {
+                                        return 'Anggota: ' + tooltipItem.xLabel + ' tugas';
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeOutQuart'
+                            },
+                            onClick: function (e, items) {
+                                if (items.length > 0) {
+                                    var index = items[0]._index;
+                                    var username = labels[index];
+                                    // Redirect to filtered tasks page
+                                    window.location.href = '../modules/daftar_tugas_kabid.php?penanggung_jawab=' + encodeURIComponent(username);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Create initial charts
+            createAdminChart();
+            createAnggotaChart();
+
+            // Add event listeners for sorting options - Admin
+            document.getElementById('sortAdminByName').addEventListener('click', function (e) {
+                e.preventDefault();
+                createAdminChart('name');
             });
+
+            document.getElementById('sortAdminByValue').addEventListener('click', function (e) {
+                e.preventDefault();
+                createAdminChart('value');
+            });
+
+            // Add event listeners for sorting options - Anggota
+            document.getElementById('sortAnggotaByName').addEventListener('click', function (e) {
+                e.preventDefault();
+                createAnggotaChart('name');
+            });
+
+            document.getElementById('sortAnggotaByValue').addEventListener('click', function (e) {
+                e.preventDefault();
+                createAnggotaChart('value');
+            });
+        });
 
     </script>
 </body>
