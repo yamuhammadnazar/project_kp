@@ -1,51 +1,51 @@
 <?php
-include '../auth/koneksi.php';
+    include '../auth/koneksi.php';
 
-if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "kabid") {
-    header("Location: ../auth/login.php");
-    exit();
-}
+    if (! isset($_SESSION["username"]) || $_SESSION["role"] !== "kabid") {
+        header("Location: ../auth/login.php");
+        exit();
+    }
 
-$username = $_SESSION["username"];
+    $username = $_SESSION["username"];
 
-// Filter bulan, tahun, dan status
-$bulan = isset($_GET['bulan']) ? $_GET['bulan'] : '';
-$tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
-$status = isset($_GET['status']) ? $_GET['status'] : '';
-$admin = isset($_GET['admin']) ? $_GET['admin'] : '';
+    // Filter bulan, tahun, dan status
+    $bulan  = isset($_GET['bulan']) ? $_GET['bulan'] : '';
+    $tahun  = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
+    $status = isset($_GET['status']) ? $_GET['status'] : '';
+    $admin  = isset($_GET['admin']) ? $_GET['admin'] : '';
 
-// Base query untuk tugas admin
-$base_query_admin = "FROM tugas_media t JOIN users u ON t.penanggung_jawab = u.username WHERE u.role = 'admin'";
+    // Base query untuk tugas admin
+    $base_query_admin = "FROM tugas_media t JOIN users u ON t.penanggung_jawab = u.username WHERE u.role = 'admin'";
 
-// Tambahkan filter jika ada
-if (!empty($bulan) && !empty($tahun)) {
-    $filter_date = " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
-    $base_query_admin .= $filter_date;
-} elseif (!empty($bulan)) {
-    $filter_date = " AND MONTH(t.tanggal_mulai) = '$bulan'";
-    $base_query_admin .= $filter_date;
-} elseif (!empty($tahun)) {
-    $filter_date = " AND YEAR(t.tanggal_mulai) = '$tahun'";
-    $base_query_admin .= $filter_date;
-}
+    // Tambahkan filter jika ada
+    if (! empty($bulan) && ! empty($tahun)) {
+        $filter_date = " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+        $base_query_admin .= $filter_date;
+    } elseif (! empty($bulan)) {
+        $filter_date = " AND MONTH(t.tanggal_mulai) = '$bulan'";
+        $base_query_admin .= $filter_date;
+    } elseif (! empty($tahun)) {
+        $filter_date = " AND YEAR(t.tanggal_mulai) = '$tahun'";
+        $base_query_admin .= $filter_date;
+    }
 
-// Tambahkan filter status jika ada
-if (!empty($status)) {
-    $filter_status = " AND t.status = '$status'";
-    $base_query_admin .= $filter_status;
-}
+    // Tambahkan filter status jika ada
+    if (! empty($status)) {
+        $filter_status = " AND t.status = '$status'";
+        $base_query_admin .= $filter_status;
+    }
 
-// Tambahkan filter admin jika ada
-if (!empty($admin)) {
-    $base_query_admin .= " AND t.penanggung_jawab = '$admin'";
-}
+    // Tambahkan filter admin jika ada
+    if (! empty($admin)) {
+        $base_query_admin .= " AND t.penanggung_jawab = '$admin'";
+    }
 
-// Query untuk tugas admin
-$query_admin = "SELECT t.* " . $base_query_admin . " ORDER BY t.tanggal_mulai DESC";
-$result_admin = mysqli_query($conn, $query_admin);
+    // Query untuk tugas admin
+    $query_admin  = "SELECT t.* " . $base_query_admin . " ORDER BY t.tanggal_mulai DESC";
+    $result_admin = mysqli_query($conn, $query_admin);
 
-// Menghitung statistik tugas admin
-$stats_query_admin = "SELECT 
+    // Menghitung statistik tugas admin
+    $stats_query_admin = "SELECT
   COUNT(*) as total_tugas,
   SUM(CASE WHEN t.status = 'Belum Dikerjakan' THEN 1 ELSE 0 END) as belum_dikerjakan,
   SUM(CASE WHEN t.status = 'Sedang Dikerjakan' THEN 1 ELSE 0 END) as sedang_dikerjakan,
@@ -53,170 +53,170 @@ $stats_query_admin = "SELECT
   SUM(CASE WHEN t.status = 'Revisi' THEN 1 ELSE 0 END) as revisi,
   SUM(CASE WHEN t.status = 'Selesai' THEN 1 ELSE 0 END) as selesai
   " . $base_query_admin;
-$stats_result_admin = mysqli_query($conn, $stats_query_admin);
-$stats_admin = mysqli_fetch_assoc($stats_result_admin);
+    $stats_result_admin = mysqli_query($conn, $stats_query_admin);
+    $stats_admin        = mysqli_fetch_assoc($stats_result_admin);
 
-// Menghitung tugas yang melewati deadline (untuk tugas admin)
-$overdue_query = "SELECT COUNT(*) as total_overdue
+    // Menghitung tugas yang melewati deadline (untuk tugas admin)
+    $overdue_query = "SELECT COUNT(*) as total_overdue
                  FROM tugas_media t
                  JOIN users u ON t.penanggung_jawab = u.username
                  WHERE t.deadline < CURDATE()
                  AND t.status != 'Selesai'
                  AND u.role = 'admin'";
-$overdue_result = mysqli_query($conn, $overdue_query);
-$overdue = mysqli_fetch_assoc($overdue_result)['total_overdue'];
+    $overdue_result = mysqli_query($conn, $overdue_query);
+    $overdue        = mysqli_fetch_assoc($overdue_result)['total_overdue'];
 
-// Menghitung tugas yang deadline-nya dalam 3 hari ke depan (untuk tugas admin)
-$upcoming_query = "SELECT COUNT(*) as total_upcoming
+    // Menghitung tugas yang deadline-nya dalam 3 hari ke depan (untuk tugas admin)
+    $upcoming_query = "SELECT COUNT(*) as total_upcoming
                   FROM tugas_media t
                   JOIN users u ON t.penanggung_jawab = u.username
                   WHERE t.deadline BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
                   AND t.status != 'Selesai'
                   AND u.role = 'admin'";
-$upcoming_result = mysqli_query($conn, $upcoming_query);
-$upcoming = mysqli_fetch_assoc($upcoming_result)['total_upcoming'];
+    $upcoming_result = mysqli_query($conn, $upcoming_query);
+    $upcoming        = mysqli_fetch_assoc($upcoming_result)['total_upcoming'];
 
-// Menghitung persentase penyelesaian tugas admin
-$completion_percentage_admin = 0;
-if ($stats_admin['total_tugas'] > 0) {
-    $completion_percentage_admin = round(($stats_admin['selesai'] / $stats_admin['total_tugas']) * 100);
-}
+    // Menghitung persentase penyelesaian tugas admin
+    $completion_percentage_admin = 0;
+    if ($stats_admin['total_tugas'] > 0) {
+        $completion_percentage_admin = round(($stats_admin['selesai'] / $stats_admin['total_tugas']) * 100);
+    }
 
-// Query untuk mendapatkan semua admin
-$admin_query = "SELECT username FROM users WHERE role = 'admin'";
-$admin_result = mysqli_query($conn, $admin_query);
+    // Query untuk mendapatkan semua admin
+    $admin_query  = "SELECT username FROM users WHERE role = 'admin'";
+    $admin_result = mysqli_query($conn, $admin_query);
 
-// Array untuk menyimpan data admin dan jumlah tugas
-$admin_data = [];
+    // Array untuk menyimpan data admin dan jumlah tugas
+    $admin_data = [];
 
-// Isi array dengan semua admin dan inisialisasi jumlah tugas dengan 0
-while ($row = mysqli_fetch_assoc($admin_result)) {
-    $admin_data[$row['username']] = 0;
-}
+    // Isi array dengan semua admin dan inisialisasi jumlah tugas dengan 0
+    while ($row = mysqli_fetch_assoc($admin_result)) {
+        $admin_data[$row['username']] = 0;
+    }
 
-// Query untuk mendapatkan jumlah tugas per admin
-$tugas_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
+    // Query untuk mendapatkan jumlah tugas per admin
+    $tugas_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
                FROM tugas_media t
                JOIN users u ON t.penanggung_jawab = u.username
                WHERE u.role = 'admin'";
 
-// Tambahkan filter yang sama seperti pada query utama
-if (!empty($bulan) && !empty($tahun)) {
-    $tugas_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
-} elseif (!empty($bulan)) {
-    $tugas_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
-} elseif (!empty($tahun)) {
-    $tugas_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
-}
-
-if (!empty($status)) {
-    $tugas_query .= " AND t.status = '$status'";
-}
-
-if (!empty($admin)) {
-    $tugas_query .= " AND t.penanggung_jawab = '$admin'";
-}
-
-$tugas_query .= " GROUP BY t.penanggung_jawab";
-$tugas_result = mysqli_query($conn, $tugas_query);
-
-// Update jumlah tugas untuk admin yang memiliki tugas
-while ($row = mysqli_fetch_assoc($tugas_result)) {
-    if (isset($admin_data[$row['penanggung_jawab']])) {
-        $admin_data[$row['penanggung_jawab']] = $row['jumlah_tugas'];
+    // Tambahkan filter yang sama seperti pada query utama
+    if (! empty($bulan) && ! empty($tahun)) {
+        $tugas_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+    } elseif (! empty($bulan)) {
+        $tugas_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+    } elseif (! empty($tahun)) {
+        $tugas_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
     }
-}
 
-// Query untuk mendapatkan semua anggota
-$anggota_query = "SELECT username FROM users WHERE role = 'anggota'";
-$anggota_result = mysqli_query($conn, $anggota_query);
+    if (! empty($status)) {
+        $tugas_query .= " AND t.status = '$status'";
+    }
 
-// Array untuk menyimpan data anggota dan jumlah tugas
-$anggota_data = [];
+    if (! empty($admin)) {
+        $tugas_query .= " AND t.penanggung_jawab = '$admin'";
+    }
 
-// Isi array dengan semua anggota dan inisialisasi jumlah tugas dengan 0
-while ($row = mysqli_fetch_assoc($anggota_result)) {
-    $anggota_data[$row['username']] = 0;
-}
+    $tugas_query .= " GROUP BY t.penanggung_jawab";
+    $tugas_result = mysqli_query($conn, $tugas_query);
 
-// Query untuk mendapatkan jumlah tugas per anggota
-$tugas_anggota_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
+    // Update jumlah tugas untuk admin yang memiliki tugas
+    while ($row = mysqli_fetch_assoc($tugas_result)) {
+        if (isset($admin_data[$row['penanggung_jawab']])) {
+            $admin_data[$row['penanggung_jawab']] = $row['jumlah_tugas'];
+        }
+    }
+
+    // Query untuk mendapatkan semua anggota
+    $anggota_query  = "SELECT username FROM users WHERE role = 'anggota'";
+    $anggota_result = mysqli_query($conn, $anggota_query);
+
+    // Array untuk menyimpan data anggota dan jumlah tugas
+    $anggota_data = [];
+
+    // Isi array dengan semua anggota dan inisialisasi jumlah tugas dengan 0
+    while ($row = mysqli_fetch_assoc($anggota_result)) {
+        $anggota_data[$row['username']] = 0;
+    }
+
+    // Query untuk mendapatkan jumlah tugas per anggota
+    $tugas_anggota_query = "SELECT t.penanggung_jawab, COUNT(*) as jumlah_tugas
                FROM tugas_media t
                JOIN users u ON t.penanggung_jawab = u.username
                WHERE u.role = 'anggota'";
 
-if (!empty($bulan) && !empty($tahun)) {
-    $tugas_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
-} elseif (!empty($bulan)) {
-    $tugas_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
-} elseif (!empty($tahun)) {
-    $tugas_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
-}
-
-if (!empty($status)) {
-    $tugas_anggota_query .= " AND t.status = '$status'";
-}
-
-$tugas_anggota_query .= " GROUP BY t.penanggung_jawab";
-$tugas_anggota_result = mysqli_query($conn, $tugas_anggota_query);
-
-// Update jumlah tugas untuk anggota yang memiliki tugas
-while ($row = mysqli_fetch_assoc($tugas_anggota_result)) {
-    if (isset($anggota_data[$row['penanggung_jawab']])) {
-        $anggota_data[$row['penanggung_jawab']] = $row['jumlah_tugas'];
+    if (! empty($bulan) && ! empty($tahun)) {
+        $tugas_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+    } elseif (! empty($bulan)) {
+        $tugas_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+    } elseif (! empty($tahun)) {
+        $tugas_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
     }
-}
 
-// Statistik: Platform terbanyak untuk admin (laporan, pemberitahuan, tugas)
-$platform_admin_query = "SELECT t.platform, COUNT(*) as jumlah
+    if (! empty($status)) {
+        $tugas_anggota_query .= " AND t.status = '$status'";
+    }
+
+    $tugas_anggota_query .= " GROUP BY t.penanggung_jawab";
+    $tugas_anggota_result = mysqli_query($conn, $tugas_anggota_query);
+
+    // Update jumlah tugas untuk anggota yang memiliki tugas
+    while ($row = mysqli_fetch_assoc($tugas_anggota_result)) {
+        if (isset($anggota_data[$row['penanggung_jawab']])) {
+            $anggota_data[$row['penanggung_jawab']] = $row['jumlah_tugas'];
+        }
+    }
+
+    // Statistik: Platform terbanyak untuk admin (laporan, pemberitahuan, tugas)
+    $platform_admin_query = "SELECT t.platform, COUNT(*) as jumlah
                  FROM tugas_media t
                  JOIN users u ON t.penanggung_jawab = u.username
                  WHERE u.role = 'admin'";
 
-// Tambahkan filter yang sama
-if (!empty($bulan) && !empty($tahun)) {
-    $platform_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
-} elseif (!empty($bulan)) {
-    $platform_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
-} elseif (!empty($tahun)) {
-    $platform_admin_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
-}
+    // Tambahkan filter yang sama
+    if (! empty($bulan) && ! empty($tahun)) {
+        $platform_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+    } elseif (! empty($bulan)) {
+        $platform_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+    } elseif (! empty($tahun)) {
+        $platform_admin_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+    }
 
-if (!empty($status)) {
-    $platform_admin_query .= " AND t.status = '$status'";
-}
+    if (! empty($status)) {
+        $platform_admin_query .= " AND t.status = '$status'";
+    }
 
-if (!empty($admin)) {
-    $platform_admin_query .= " AND t.penanggung_jawab = '$admin'";
-}
+    if (! empty($admin)) {
+        $platform_admin_query .= " AND t.penanggung_jawab = '$admin'";
+    }
 
-$platform_admin_query .= " GROUP BY t.platform ORDER BY jumlah DESC LIMIT 3";
-$platform_admin_result = mysqli_query($conn, $platform_admin_query);
+    $platform_admin_query .= " GROUP BY t.platform ORDER BY jumlah DESC LIMIT 3";
+    $platform_admin_result = mysqli_query($conn, $platform_admin_query);
 
-// Statistik: Platform terbanyak untuk anggota (sosial media)
-$platform_anggota_query = "SELECT t.platform, COUNT(*) as jumlah
+    // Statistik: Platform terbanyak untuk anggota (sosial media)
+    $platform_anggota_query = "SELECT t.platform, COUNT(*) as jumlah
                  FROM tugas_media t
                  JOIN users u ON t.penanggung_jawab = u.username
                  WHERE u.role = 'anggota'";
 
-// Tambahkan filter yang sama
-if (!empty($bulan) && !empty($tahun)) {
-    $platform_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
-} elseif (!empty($bulan)) {
-    $platform_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
-} elseif (!empty($tahun)) {
-    $platform_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
-}
+    // Tambahkan filter yang sama
+    if (! empty($bulan) && ! empty($tahun)) {
+        $platform_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+    } elseif (! empty($bulan)) {
+        $platform_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+    } elseif (! empty($tahun)) {
+        $platform_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+    }
 
-if (!empty($status)) {
-    $platform_anggota_query .= " AND t.status = '$status'";
-}
+    if (! empty($status)) {
+        $platform_anggota_query .= " AND t.status = '$status'";
+    }
 
-$platform_anggota_query .= " GROUP BY t.platform ORDER BY jumlah DESC LIMIT 3";
-$platform_anggota_result = mysqli_query($conn, $platform_anggota_query);
+    $platform_anggota_query .= " GROUP BY t.platform ORDER BY jumlah DESC LIMIT 3";
+    $platform_anggota_result = mysqli_query($conn, $platform_anggota_query);
 
-// Statistik: Tugas yang sering overdue (untuk tugas admin)
-$overdue_detail_query = "SELECT t.id, t.judul, t.penanggung_jawab, t.deadline, DATEDIFF(CURDATE(), t.deadline) as hari_terlambat
+    // Statistik: Tugas yang sering overdue (untuk tugas admin)
+    $overdue_detail_query = "SELECT t.id, t.judul, t.penanggung_jawab, t.deadline, DATEDIFF(CURDATE(), t.deadline) as hari_terlambat
                        FROM tugas_media t
                        JOIN users u ON t.penanggung_jawab = u.username
                        WHERE t.deadline < CURDATE()
@@ -224,194 +224,194 @@ $overdue_detail_query = "SELECT t.id, t.judul, t.penanggung_jawab, t.deadline, D
                        AND u.role = 'admin'
                        ORDER BY hari_terlambat DESC
                        LIMIT 5";
-$overdue_detail_result = mysqli_query($conn, $overdue_detail_query);
+    $overdue_detail_result = mysqli_query($conn, $overdue_detail_query);
 
-// Mendapatkan daftar semua admin untuk filter
-$admin_list_query = "SELECT DISTINCT username FROM users WHERE role = 'admin' ORDER BY username";
-$admin_list_result = mysqli_query($conn, $admin_list_query);
+    // Mendapatkan daftar semua admin untuk filter
+    $admin_list_query  = "SELECT DISTINCT username FROM users WHERE role = 'admin' ORDER BY username";
+    $admin_list_result = mysqli_query($conn, $admin_list_query);
 
-// Query untuk distribusi status tugas admin
-$status_admin_query = "SELECT t.status, COUNT(*) as jumlah
+    // Query untuk distribusi status tugas admin
+    $status_admin_query = "SELECT t.status, COUNT(*) as jumlah
                       FROM tugas_media t
                       JOIN users u ON t.penanggung_jawab = u.username
                       WHERE u.role = 'admin'";
 
-// Tambahkan filter yang sama seperti pada query utama
-if (!empty($bulan) && !empty($tahun)) {
-    $status_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
-} elseif (!empty($bulan)) {
-    $status_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
-} elseif (!empty($tahun)) {
-    $status_admin_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
-}
+    // Tambahkan filter yang sama seperti pada query utama
+    if (! empty($bulan) && ! empty($tahun)) {
+        $status_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+    } elseif (! empty($bulan)) {
+        $status_admin_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+    } elseif (! empty($tahun)) {
+        $status_admin_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
+    }
 
-if (!empty($status)) {
-    $status_admin_query .= " AND t.status = '$status'";
-}
+    if (! empty($status)) {
+        $status_admin_query .= " AND t.status = '$status'";
+    }
 
-if (!empty($admin)) {
-    $status_admin_query .= " AND t.penanggung_jawab = '$admin'";
-}
+    if (! empty($admin)) {
+        $status_admin_query .= " AND t.penanggung_jawab = '$admin'";
+    }
 
-$status_admin_query .= " GROUP BY t.status";
-$status_admin_result = mysqli_query($conn, $status_admin_query);
+    $status_admin_query .= " GROUP BY t.status";
+    $status_admin_result = mysqli_query($conn, $status_admin_query);
 
-// Query untuk distribusi status tugas anggota
-$status_anggota_query = "SELECT t.status, COUNT(*) as jumlah
+    // Query untuk distribusi status tugas anggota
+    $status_anggota_query = "SELECT t.status, COUNT(*) as jumlah
                         FROM tugas_media t
                         JOIN users u ON t.penanggung_jawab = u.username
                         WHERE u.role = 'anggota'";
 
-// Tambahkan filter yang sama
-if (!empty($bulan) && !empty($tahun)) {
-    $status_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
-} elseif (!empty($bulan)) {
-    $status_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
-} elseif (!empty($tahun)) {
-    $status_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
-}
-
-if (!empty($status)) {
-    $status_anggota_query .= " AND t.status = '$status'";
-}
-
-$status_anggota_query .= " GROUP BY t.status";
-$status_anggota_result = mysqli_query($conn, $status_anggota_query);
-
-// Persiapkan data untuk JavaScript
-$admin_status_data = [];
-$admin_status_colors = [];
-while ($row = mysqli_fetch_assoc($status_admin_result)) {
-    $admin_status_data[$row['status']] = (int) $row['jumlah'];
-
-    // Tetapkan warna berdasarkan status
-    switch ($row['status']) {
-        case 'Belum Dikerjakan':
-            $admin_status_colors[$row['status']] = '#e74a3b'; // merah
-            break;
-        case 'Sedang Dikerjakan':
-            $admin_status_colors[$row['status']] = '#f6c23e'; // kuning
-            break;
-        case 'Kirim':
-            $admin_status_colors[$row['status']] = '#36b9cc'; // biru
-            break;
-        case 'Revisi':
-            $admin_status_colors[$row['status']] = '#4e73df'; // ungu
-            break;
-        case 'Selesai':
-            $admin_status_colors[$row['status']] = '#1cc88a'; // hijau
-            break;
-        default:
-            $admin_status_colors[$row['status']] = '#858796'; // abu-abu
+    // Tambahkan filter yang sama
+    if (! empty($bulan) && ! empty($tahun)) {
+        $status_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan' AND YEAR(t.tanggal_mulai) = '$tahun'";
+    } elseif (! empty($bulan)) {
+        $status_anggota_query .= " AND MONTH(t.tanggal_mulai) = '$bulan'";
+    } elseif (! empty($tahun)) {
+        $status_anggota_query .= " AND YEAR(t.tanggal_mulai) = '$tahun'";
     }
-}
 
-$anggota_status_data = [];
-$anggota_status_colors = [];
-while ($row = mysqli_fetch_assoc($status_anggota_result)) {
-    $anggota_status_data[$row['status']] = (int) $row['jumlah'];
-
-    // Tetapkan warna berdasarkan status
-    switch ($row['status']) {
-        case 'Belum Dikerjakan':
-            $anggota_status_colors[$row['status']] = '#e74a3b'; // merah
-            break;
-        case 'Sedang Dikerjakan':
-            $anggota_status_colors[$row['status']] = '#f6c23e'; // kuning
-            break;
-        case 'Kirim':
-            $anggota_status_colors[$row['status']] = '#36b9cc'; // biru
-            break;
-        case 'Revisi':
-            $anggota_status_colors[$row['status']] = '#4e73df'; // ungu
-            break;
-        case 'Selesai':
-            $anggota_status_colors[$row['status']] = '#1cc88a'; // hijau
-            break;
-        default:
-            $anggota_status_colors[$row['status']] = '#858796'; // abu-abu
+    if (! empty($status)) {
+        $status_anggota_query .= " AND t.status = '$status'";
     }
-}
 
-// Ekspor ke CSV jika diminta
-if (isset($_GET['export']) && $_GET['export'] == 'csv') {
-    // Set header untuk download file CSV
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=laporan_tugas_kabid_' . date('Y-m-d') . '.csv');
+    $status_anggota_query .= " GROUP BY t.status";
+    $status_anggota_result = mysqli_query($conn, $status_anggota_query);
 
-    // Buat file pointer untuk output
-    $output = fopen('php://output', 'w');
+    // Persiapkan data untuk JavaScript
+    $admin_status_data   = [];
+    $admin_status_colors = [];
+    while ($row = mysqli_fetch_assoc($status_admin_result)) {
+        $admin_status_data[$row['status']] = (int) $row['jumlah'];
 
-    // Tambahkan BOM untuk UTF-8
-    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        // Tetapkan warna berdasarkan status
+        switch ($row['status']) {
+            case 'Belum Dikerjakan':
+                $admin_status_colors[$row['status']] = '#e74a3b'; // merah
+                break;
+            case 'Sedang Dikerjakan':
+                $admin_status_colors[$row['status']] = '#f6c23e'; // kuning
+                break;
+            case 'Kirim':
+                $admin_status_colors[$row['status']] = '#36b9cc'; // biru
+                break;
+            case 'Revisi':
+                $admin_status_colors[$row['status']] = '#4e73df'; // ungu
+                break;
+            case 'Selesai':
+                $admin_status_colors[$row['status']] = '#1cc88a'; // hijau
+                break;
+            default:
+                $admin_status_colors[$row['status']] = '#858796'; // abu-abu
+        }
+    }
 
-    // Header kolom dalam bahasa Indonesia
-    fputcsv($output, [
-        'No',
-        'Judul',
-        'Platform',
-        'Deskripsi',
-        'Status',
-        'Tanggal Mulai',
-        'Deadline',
-        'Link',
-        'Penanggung Jawab',
-        'Catatan',
-    ]);
+    $anggota_status_data   = [];
+    $anggota_status_colors = [];
+    while ($row = mysqli_fetch_assoc($status_anggota_result)) {
+        $anggota_status_data[$row['status']] = (int) $row['jumlah'];
 
-    // Reset pointer hasil query
-    mysqli_data_seek($result_admin, 0);
+        // Tetapkan warna berdasarkan status
+        switch ($row['status']) {
+            case 'Belum Dikerjakan':
+                $anggota_status_colors[$row['status']] = '#e74a3b'; // merah
+                break;
+            case 'Sedang Dikerjakan':
+                $anggota_status_colors[$row['status']] = '#f6c23e'; // kuning
+                break;
+            case 'Kirim':
+                $anggota_status_colors[$row['status']] = '#36b9cc'; // biru
+                break;
+            case 'Revisi':
+                $anggota_status_colors[$row['status']] = '#4e73df'; // ungu
+                break;
+            case 'Selesai':
+                $anggota_status_colors[$row['status']] = '#1cc88a'; // hijau
+                break;
+            default:
+                $anggota_status_colors[$row['status']] = '#858796'; // abu-abu
+        }
+    }
 
-    // Tambahkan data
-    $no = 1;
-    while ($row = mysqli_fetch_assoc($result_admin)) {
-        $deadline_date = isset($row['deadline']) ? new DateTime($row['deadline']) : new DateTime();
-        $today = new DateTime();
-        $interval = $today->diff($deadline_date);
-        $days_remaining = $interval->days;
-        $deadline_text = isset($row['deadline']) ? date('d/m/Y', strtotime($row['deadline'])) : 'Tidak ada deadline';
+    // Ekspor ke CSV jika diminta
+    if (isset($_GET['export']) && $_GET['export'] == 'csv') {
+        // Set header untuk download file CSV
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=laporan_tugas_kabid_' . date('Y-m-d') . '.csv');
 
-        if (isset($row['deadline']) && $today > $deadline_date && $row['status'] != 'Selesai') {
-            $deadline_text .= " (Terlewat)";
-        } elseif (isset($row['deadline']) && $days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
-            $deadline_text .= " ($days_remaining hari lagi)";
+        // Buat file pointer untuk output
+        $output = fopen('php://output', 'w');
+
+        // Tambahkan BOM untuk UTF-8
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // Header kolom dalam bahasa Indonesia
+        fputcsv($output, [
+            'No',
+            'Judul',
+            'Platform',
+            'Deskripsi',
+            'Status',
+            'Tanggal Mulai',
+            'Deadline',
+            'Link',
+            'Penanggung Jawab',
+            'Catatan',
+        ]);
+
+        // Reset pointer hasil query
+        mysqli_data_seek($result_admin, 0);
+
+        // Tambahkan data
+        $no = 1;
+        while ($row = mysqli_fetch_assoc($result_admin)) {
+            $deadline_date  = isset($row['deadline']) ? new DateTime($row['deadline']) : new DateTime();
+            $today          = new DateTime();
+            $interval       = $today->diff($deadline_date);
+            $days_remaining = $interval->days;
+            $deadline_text  = isset($row['deadline']) ? date('d/m/Y', strtotime($row['deadline'])) : 'Tidak ada deadline';
+
+            if (isset($row['deadline']) && $today > $deadline_date && $row['status'] != 'Selesai') {
+                $deadline_text .= " (Terlewat)";
+            } elseif (isset($row['deadline']) && $days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
+                $deadline_text .= " ($days_remaining hari lagi)";
+            }
+
+            $catatan = ! empty($row['catatan_kabid']) ? $row['catatan_kabid'] : (isset($row['catatan']) ? $row['catatan'] : '');
+
+            fputcsv($output, [
+                $no++,
+                $row['judul'],
+                $row['platform'],
+                $row['deskripsi'],
+                $row['status'],
+                isset($row['tanggal_mulai']) ? date('d/m/Y', strtotime($row['tanggal_mulai'])) : 'Tidak ada tanggal',
+                $deadline_text,
+                isset($row['link_drive']) ? $row['link_drive'] : '',
+                isset($row['penanggung_jawab']) ? $row['penanggung_jawab'] : '',
+                $catatan,
+            ]);
         }
 
-        $catatan = !empty($row['catatan_kabid']) ? $row['catatan_kabid'] : (isset($row['catatan']) ? $row['catatan'] : '');
-
-        fputcsv($output, [
-            $no++,
-            $row['judul'],
-            $row['platform'],
-            $row['deskripsi'],
-            $row['status'],
-            isset($row['tanggal_mulai']) ? date('d/m/Y', strtotime($row['tanggal_mulai'])) : 'Tidak ada tanggal',
-            $deadline_text,
-            isset($row['link_drive']) ? $row['link_drive'] : '',
-            isset($row['penanggung_jawab']) ? $row['penanggung_jawab'] : '',
-            $catatan,
-        ]);
+        fclose($output);
+        exit;
     }
 
-    fclose($output);
-    exit;
-}
-
-// Nama bulan dalam bahasa Indonesia
-$nama_bulan = [
-    '1' => 'Januari',
-    '2' => 'Februari',
-    '3' => 'Maret',
-    '4' => 'April',
-    '5' => 'Mei',
-    '6' => 'Juni',
-    '7' => 'Juli',
-    '8' => 'Agustus',
-    '9' => 'September',
-    '10' => 'Oktober',
-    '11' => 'November',
-    '12' => 'Desember',
-];
+    // Nama bulan dalam bahasa Indonesia
+    $nama_bulan = [
+        '1'  => 'Januari',
+        '2'  => 'Februari',
+        '3'  => 'Maret',
+        '4'  => 'April',
+        '5'  => 'Mei',
+        '6'  => 'Juni',
+        '7'  => 'Juli',
+        '8'  => 'Agustus',
+        '9'  => 'September',
+        '10' => 'Oktober',
+        '11' => 'November',
+        '12' => 'Desember',
+    ];
 ?>
 
 
@@ -1067,7 +1067,7 @@ $nama_bulan = [
                                     <select class="form-select" id="bulan" name="bulan">
                                         <option value="">Semua Bulan</option>
                                         <?php foreach ($nama_bulan as $key => $value): ?>
-                                            <option value="<?php echo $key; ?>" <?php echo ($bulan == $key) ? 'selected' : ''; ?>>
+                                            <option value="<?php echo $key; ?>"<?php echo($bulan == $key) ? 'selected' : ''; ?>>
                                                 <?php echo $value; ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -1078,10 +1078,10 @@ $nama_bulan = [
                                     <select class="form-select" id="tahun" name="tahun">
                                         <option value="">Semua Tahun</option>
                                         <?php
-                                        $current_year = date('Y');
-                                        for ($y = $current_year; $y >= $current_year - 5; $y--):
-                                            ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($tahun == $y) ? 'selected' : ''; ?>>
+                                            $current_year = date('Y');
+                                            for ($y = $current_year; $y >= $current_year - 5; $y--):
+                                        ?>
+                                            <option value="<?php echo $y; ?>"<?php echo($tahun == $y) ? 'selected' : ''; ?>>
                                                 <?php echo $y; ?>
                                             </option>
                                         <?php endfor; ?>
@@ -1091,15 +1091,15 @@ $nama_bulan = [
                                     <label for="status" class="form-label">Status</label>
                                     <select class="form-select" id="status" name="status">
                                         <option value="">Semua Status</option>
-                                        <option value="Belum Dikerjakan" <?php echo ($status == 'Belum Dikerjakan') ? 'selected' : ''; ?>>
+                                        <option value="Belum Dikerjakan"                                                                         <?php echo($status == 'Belum Dikerjakan') ? 'selected' : ''; ?>>
                                             Belum Dikerjakan</option>
-                                        <option value="Sedang Dikerjakan" <?php echo ($status == 'Sedang Dikerjakan') ? 'selected' : ''; ?>>
+                                        <option value="Sedang Dikerjakan"                                                                          <?php echo($status == 'Sedang Dikerjakan') ? 'selected' : ''; ?>>
                                             Sedang Dikerjakan</option>
-                                        <option value="Kirim" <?php echo ($status == 'Kirim') ? 'selected' : ''; ?>>Kirim
+                                        <option value="Kirim"                                                              <?php echo($status == 'Kirim') ? 'selected' : ''; ?>>Kirim
                                         </option>
-                                        <option value="Revisi" <?php echo ($status == 'Revisi') ? 'selected' : ''; ?>>
+                                        <option value="Revisi"                                                               <?php echo($status == 'Revisi') ? 'selected' : ''; ?>>
                                             Revisi</option>
-                                        <option value="Selesai" <?php echo ($status == 'Selesai') ? 'selected' : ''; ?>>
+                                        <option value="Selesai"                                                                <?php echo($status == 'Selesai') ? 'selected' : ''; ?>>
                                             Selesai</option>
                                     </select>
                                 </div>
@@ -1150,7 +1150,7 @@ $nama_bulan = [
             </div>
         </div>
     </div>
-    
+
     <!-- Anggota Status Distribution -->
     <div class="col-lg-6">
         <div class="card mb-4">
@@ -1203,8 +1203,8 @@ $nama_bulan = [
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                if (mysqli_num_rows($platform_admin_result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($platform_admin_result)) {
+                                                    if (mysqli_num_rows($platform_admin_result) > 0) {
+                                                        while ($row = mysqli_fetch_assoc($platform_admin_result)) {
                                                         ?>
                                                         <tr>
                                                             <td><?php echo $row['platform']; ?></td>
@@ -1213,11 +1213,11 @@ $nama_bulan = [
                                                             </td>
                                                         </tr>
                                                         <?php
-                                                    }
-                                                } else {
-                                                    echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
-                                                }
-                                                ?>
+                                                            }
+                                                            } else {
+                                                                echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
+                                                            }
+                                                        ?>
                                             </tbody>
                                         </table>
                                     </div>
@@ -1242,8 +1242,8 @@ $nama_bulan = [
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                if (mysqli_num_rows($platform_anggota_result) > 0) {
-                                                    while ($row = mysqli_fetch_assoc($platform_anggota_result)) {
+                                                    if (mysqli_num_rows($platform_anggota_result) > 0) {
+                                                        while ($row = mysqli_fetch_assoc($platform_anggota_result)) {
                                                         ?>
                                                         <tr>
                                                             <td><?php echo $row['platform']; ?></td>
@@ -1251,11 +1251,11 @@ $nama_bulan = [
                                                             </td>
                                                         </tr>
                                                         <?php
-                                                    }
-                                                } else {
-                                                    echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
-                                                }
-                                                ?>
+                                                            }
+                                                            } else {
+                                                                echo "<tr><td colspan='2' class='text-center'>Tidak ada data platform</td></tr>";
+                                                            }
+                                                        ?>
                                             </tbody>
                                         </table>
                                     </div>
@@ -1382,13 +1382,13 @@ $nama_bulan = [
             window.addEventListener('resize', checkWidth);
 
             // Data untuk chart status admin dan anggota
-var adminStatusData = <?php echo json_encode(array_keys($admin_status_data)); ?>;
-            var adminStatusValues = <?php echo json_encode(array_values($admin_status_data)); ?>;
-            var adminStatusColors = <?php echo json_encode(array_values($admin_status_colors)); ?>;
+var adminStatusData =                      <?php echo json_encode(array_keys($admin_status_data)); ?>;
+            var adminStatusValues =                                    <?php echo json_encode(array_values($admin_status_data)); ?>;
+            var adminStatusColors =                                    <?php echo json_encode(array_values($admin_status_colors)); ?>;
 
-            var anggotaStatusData = <?php echo json_encode(array_keys($anggota_status_data)); ?>;
-            var anggotaStatusValues = <?php echo json_encode(array_values($anggota_status_data)); ?>;
-            var anggotaStatusColors = <?php echo json_encode(array_values($anggota_status_colors)); ?>;
+            var anggotaStatusData =                                    <?php echo json_encode(array_keys($anggota_status_data)); ?>;
+            var anggotaStatusValues =                                      <?php echo json_encode(array_values($anggota_status_data)); ?>;
+            var anggotaStatusColors =                                      <?php echo json_encode(array_values($anggota_status_colors)); ?>;
 
             // Fungsi untuk membuat pie chart status admin
             function createStatusAdminChart() {
@@ -1560,8 +1560,8 @@ var adminStatusData = <?php echo json_encode(array_keys($admin_status_data)); ?>
 
 
             // Chart code - memastikan ini dijalankan setelah DOM dimuat
-            var adminData = <?php echo json_encode($admin_data); ?>;
-            var anggotaData = <?php echo json_encode($anggota_data); ?>;
+            var adminData =                            <?php echo json_encode($admin_data); ?>;
+            var anggotaData =                              <?php echo json_encode($anggota_data); ?>;
 
             // Persiapkan data untuk chart admin
             var adminChartData = [];
