@@ -224,9 +224,7 @@ $nama_bulan = [
 </head>
 
 <body>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-    </div>
+
     <div id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
