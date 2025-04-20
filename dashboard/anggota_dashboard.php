@@ -224,6 +224,9 @@ $nama_bulan = [
 </head>
 
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
     <div id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
@@ -354,7 +357,8 @@ $nama_bulan = [
                                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                                 Total Tugas</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                <?= $stats['total_tugas'] ?></div>
+                                                <?= $stats['total_tugas'] ?>
+                                            </div>
                                         </div>
                                         <div class="col-auto">
                                             <i class="bi bi-clipboard-check fa-2x text-gray-300 stat-icon"></i>
@@ -678,14 +682,36 @@ $nama_bulan = [
                 const sidebarWrapper = document.getElementById('sidebar-wrapper');
                 const contentWrapper = document.getElementById('content-wrapper');
 
+                // Fungsi untuk menutup sidebar dengan animasi
+                function closeSidebar() {
+                    if (sidebarWrapper.classList.contains('show')) {
+                        // Fade out overlay dulu
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (overlay) {
+                            overlay.style.opacity = '0';
+
+                            // Tunggu animasi fade selesai baru hapus overlay
+                            setTimeout(() => {
+                                sidebarWrapper.classList.remove('show');
+                                if (document.body.contains(overlay)) {
+                                    document.body.removeChild(overlay);
+                                }
+                            }, 300);
+                        } else {
+                            sidebarWrapper.classList.remove('show');
+                        }
+                    }
+                }
+
                 if (sidebarToggle) {
                     sidebarToggle.addEventListener('click', function (e) {
                         e.preventDefault();
                         if (window.innerWidth < 768) {
-                            sidebarWrapper.classList.toggle('show');
-
                             // Tambahkan overlay saat sidebar terbuka di mobile
-                            if (sidebarWrapper.classList.contains('show')) {
+                            if (!sidebarWrapper.classList.contains('show')) {
+                                // Buka sidebar
+                                sidebarWrapper.classList.add('show');
+
                                 const overlay = document.createElement('div');
                                 overlay.id = 'sidebar-overlay';
                                 overlay.style.position = 'fixed';
@@ -694,40 +720,51 @@ $nama_bulan = [
                                 overlay.style.width = '100%';
                                 overlay.style.height = '100%';
                                 overlay.style.backgroundColor = 'rgba(0,0,0,0.4)';
-                                overlay.style.zIndex = '1040';
+                                overlay.style.zIndex = '999';
+                                overlay.style.opacity = '0';
+                                overlay.style.transition = 'opacity 0.3s ease';
                                 document.body.appendChild(overlay);
 
+                                // Trigger reflow untuk memastikan transisi berjalan
+                                overlay.offsetHeight;
+
+                                // Fade in overlay
+                                setTimeout(() => {
+                                    overlay.style.opacity = '1';
+                                }, 10);
+
                                 overlay.addEventListener('click', function () {
-                                    sidebarWrapper.classList.remove('show');
-                                    document.body.removeChild(overlay);
+                                    closeSidebar();
                                 });
                             } else {
-                                const overlay = document.getElementById('sidebar-overlay');
-                                if (overlay) {
-                                    document.body.removeChild(overlay);
-                                }
+                                // Tutup sidebar
+                                closeSidebar();
                             }
                         } else {
+                            // Desktop behavior
                             sidebarWrapper.classList.toggle('collapsed');
                             contentWrapper.classList.toggle('expanded');
                         }
                     });
                 }
 
-                // Responsive sidebar behavior
+                // Responsive sidebar behavior dengan debounce
+                let resizeTimer;
                 function checkScreenSize() {
                     if (window.innerWidth < 768) {
                         sidebarWrapper.classList.remove('collapsed');
                         contentWrapper.classList.remove('expanded');
 
                         // Tutup sidebar saat resize ke mobile
+                        if (sidebarWrapper.classList.contains('show')) {
+                            closeSidebar();
+                        }
+                    } else {
                         sidebarWrapper.classList.remove('show');
                         const overlay = document.getElementById('sidebar-overlay');
                         if (overlay) {
                             document.body.removeChild(overlay);
                         }
-                    } else {
-                        sidebarWrapper.classList.remove('show');
                     }
 
                     // Sesuaikan tinggi tabel
@@ -741,6 +778,8 @@ $nama_bulan = [
                         if (window.innerWidth < 768) {
                             container.style.maxHeight = '400px';
                             container.style.overflowY = 'auto';
+                            container.style.overflowX = 'auto';
+                            container.style.WebkitOverflowScrolling = 'touch'; // Untuk iOS smooth scrolling
                         } else {
                             container.style.maxHeight = 'none';
                         }
@@ -750,8 +789,11 @@ $nama_bulan = [
                 // Check on load
                 checkScreenSize();
 
-                // Check on resize
-                window.addEventListener('resize', checkScreenSize);
+                // Check on resize dengan debounce untuk performa lebih baik
+                window.addEventListener('resize', function () {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(checkScreenSize, 100);
+                });
 
                 // Add fade-in effect to body
                 document.body.classList.add('loaded');
@@ -767,11 +809,7 @@ $nama_bulan = [
                 sidebarLinks.forEach(link => {
                     link.addEventListener('click', function () {
                         if (window.innerWidth < 768 && sidebarWrapper.classList.contains('show')) {
-                            sidebarWrapper.classList.remove('show');
-                            const overlay = document.getElementById('sidebar-overlay');
-                            if (overlay) {
-                                document.body.removeChild(overlay);
-                            }
+                            closeSidebar();
                         }
                     });
                 });
@@ -783,7 +821,12 @@ $nama_bulan = [
                         table.classList.add('table-sm');
                     });
                 }
+
+                // Tambahkan class untuk animasi smooth pada sidebar
+                sidebarWrapper.style.transition = 'width 0.3s ease-in-out, box-shadow 0.3s ease-in-out';
+                contentWrapper.style.transition = 'margin-left 0.3s ease-in-out';
             });
+
         </script>
 
 </body>

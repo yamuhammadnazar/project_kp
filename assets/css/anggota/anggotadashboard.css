@@ -255,23 +255,37 @@
 }
 
 @media (max-width: 768px) {
-    #sidebar-wrapper {
-        width: 0;
-        overflow: hidden;
-        position: fixed;
-        height: 100%;
+    /* Perbaikan untuk tabel */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        max-height: 400px;
     }
     
-    #sidebar-wrapper.show {
-        width: var(--sidebar-width);
+    /* Perbaikan untuk kartu statistik */
+    .row .col-xl-3 {
+        margin-bottom: 15px;
     }
     
-    #content-wrapper {
-        margin-left: 0;
+    /* Perbaikan untuk form filter */
+    .filter-form .col-md-3 {
+        margin-bottom: 10px;
     }
     
-    .topbar .toggle-sidebar {
-        display: block;
+    .filter-form .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    /* Perbaikan untuk header halaman */
+    .d-sm-flex {
+        flex-direction: column;
+        align-items: start !important;
+    }
+    
+    .d-sm-flex .btn-sm {
+        margin-top: 10px;
+        width: 100%;
     }
 }
 
@@ -436,51 +450,30 @@
 }
 
 @media (max-width: 575px) {
-#content {
-    padding: 1rem 0.5rem;
-}
-
-.card-header, .card-body {
-    padding: 0.75rem;
-}
-
-.table {
-    font-size: 0.8rem;
-}
-
-.stat-card .card-body {
-    padding: 0.75rem;
-}
-
-.stat-card .text-xs {
-    font-size: 0.6rem;
-}
-
-.stat-card .stat-value {
-    font-size: 1.1rem;
-}
-
-.stat-card .stat-icon {
-    font-size: 1.5rem;
-}
-
-h1.h3 {
-    font-size: 1.5rem;
-}
-
-.d-sm-flex {
-    flex-direction: column;
-}
-
-.d-sm-flex .btn {
-    margin-top: 0.5rem;
-    width: 100%;
-}
-
-.filter-form .btn {
-    width: 100%;
-    margin-bottom: 0.5rem;
-}
+    /* Perbaikan untuk padding konten */
+    #content {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Perbaikan untuk kartu */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-header, .card-body {
+        padding: 0.75rem;
+    }
+    
+    /* Perbaikan untuk tabel */
+    .table {
+        font-size: 0.75rem;
+    }
+    
+    /* Perbaikan untuk tooltip */
+    .custom-tooltip .tooltip-text {
+        width: 150px;
+        margin-left: -75px;
+    }
 }
 
 /* Tambahan untuk tabel responsif */
