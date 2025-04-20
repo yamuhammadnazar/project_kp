@@ -26,7 +26,7 @@ $query = "INSERT INTO tugas_media (judul, platform, deskripsi, status, tanggal_m
           VALUES ('$judul', '$platform', '$deskripsi', '$status', '$tanggal_mulai', '$deadline', '$link_drive', '$penanggung_jawab', '$pemberi_tugas', $pemberi_tugas_id)";
 
 // Eksekusi query
-if(mysqli_query($conn, $query)) {
+if (mysqli_query($conn, $query)) {
     if ($_SESSION["role"] == "admin") {
         header("Location: ../modules/tambah_tugas_anggota.php");
     } else {
