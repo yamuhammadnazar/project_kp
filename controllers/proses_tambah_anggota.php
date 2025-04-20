@@ -28,9 +28,9 @@ $query = "INSERT INTO tugas_media (judul, platform, deskripsi, status, tanggal_m
 // Eksekusi query
 if (mysqli_query($conn, $query)) {
     if ($_SESSION["role"] == "admin") {
-        header("Location: ../modules/tambah_tugas_anggota.php");
+        header("Location: ../dashboard/admin_dashboard.php");
     } else {
-        header("Location: ../modules/tambah_tugas_anggota.php");
+        header("Location: ../dashboard/anggota_dashboard.php");
     }
     exit();
 } else {
