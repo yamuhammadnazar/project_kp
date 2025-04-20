@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if (mysqli_query($conn, $query)) {
             // Redirect to anggota_dashboard.php after successful insertion
-            header("Location: ../dashboard/anggota_dashboard.php?success=1");
+            header("Location: ../modules/tambah.php?success=1");
             exit();
         } else {
             $error_message = "❌ Gagal menambahkan tugas: " . mysqli_error($conn);
