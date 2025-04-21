@@ -924,7 +924,7 @@ $platformColor = getPlatformColor($data['platform']);
                                             <button type="submit" name="action" value="revisi" class="btn btn-danger">
                                                 <i class="bi bi-arrow-repeat"></i> Minta Revisi
                                             </button>
-                                            <a href="../dashboard/admin_dashboard.php" class="btn btn-secondary">
+                                            <a href="../modules/daftar_tugas_admin.php" class="btn btn-secondary">
                                                 <i class="bi bi-x-circle"></i> Batal
                                             </a>
                                         </div>

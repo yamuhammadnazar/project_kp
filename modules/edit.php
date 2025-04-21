@@ -461,7 +461,7 @@ $data = mysqli_fetch_assoc($result);
                                     <button type="submit" class="btn btn-primary me-2">
                                         <i class="bi bi-save me-1"></i> Update Tugas
                                     </button>
-                                    <a href="../dashboard/admin_dashboard.php" class="btn btn-secondary">
+                                    <a href="../modules/daftar_tugas_admin.php" class="btn btn-secondary">
                                         <i class="bi bi-x-circle me-1"></i> Batal
                                     </a>
                                 </div>

@@ -936,7 +936,7 @@ $nama_bulan = [
                                                         <td><?php echo date('d/m/Y', strtotime($row['deadline'])); ?></td>
                                                         <td><span class="badge bg-danger"><?php echo $row['hari_terlambat']; ?> hari</span></td>
                                                         <td>
-                                                        <a href="../views/catatan_kabid.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
+                                                        <a href="../views/catatan_admin.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Tambah Catatan">
                                                             <i class="bi bi-chat-square-text"></i>
                                                         </a>
                                                         </td>
