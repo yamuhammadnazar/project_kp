@@ -790,8 +790,8 @@ $platformColor = getPlatformColor($data['platform']);
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800 fw-bold animate__animated animate__fadeInLeft">Verifikasi Tugas</h1>
-                        <a href="../dashboard/admin_dashboard.php" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm animate__animated animate__fadeInRight">
-                            <i class="bi bi-arrow-left me-1"></i> Kembali ke Dashboard
+                        <a href="../modules/daftar_tugas_admin.php" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm animate__animated animate__fadeInRight">
+                            <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Tugas
                         </a>
                     </div>
 
