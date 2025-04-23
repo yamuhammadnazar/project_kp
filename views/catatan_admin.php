@@ -875,29 +875,69 @@ $platformColor = getPlatformColor($data['platform']);
                                                 <span><?php echo nl2br(htmlspecialchars($data['deskripsi'])); ?></span>
                                             </p>
                                         <?php endif; ?>
-                                        
-                                        <?php if(!empty($data['link_drive'])): ?>
+
+                                        <?php if (!empty($data['link_drive'])): ?>
                                             <p>
-                                                <strong>Link Drive:</strong> 
-                                                <a href="<?php echo htmlspecialchars($data['link_drive']); ?>" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
-                                                    <i class="bi bi-cloud-arrow-down me-1"></i> Lihat File
+                                                <strong>Link:</strong>
+                                                <?php
+                                                // Pastikan link memiliki format yang benar
+                                                $link = trim($data['link_drive']);
+                                                if (!empty($link) && !preg_match("~^(?:f|ht)tps?://~i", $link)) {
+                                                    $link = "https://" . $link;
+                                                }
+
+                                                // Tentukan jenis link dan ikon yang sesuai
+                                                $icon = "bi-link-45deg";
+                                                $label = "Lihat File";
+
+                                                if (strpos($link, 'drive.google.com') !== false) {
+                                                    $icon = "bi-google";
+                                                    $label = "Lihat Google Drive";
+                                                } elseif (strpos($link, 'dropbox.com') !== false) {
+                                                    $icon = "bi-dropbox";
+                                                    $label = "Lihat Dropbox";
+                                                } elseif (strpos($link, 'onedrive.live.com') !== false || strpos($link, 'sharepoint.com') !== false) {
+                                                    $icon = "bi-microsoft";
+                                                    $label = "Lihat OneDrive";
+                                                } elseif (strpos($link, 'youtube.com') !== false || strpos($link, 'youtu.be') !== false) {
+                                                    $icon = "bi-youtube";
+                                                    $label = "Lihat YouTube";
+                                                } elseif (strpos($link, 'instagram.com') !== false) {
+                                                    $icon = "bi-instagram";
+                                                    $label = "Lihat Instagram";
+                                                } elseif (strpos($link, 'facebook.com') !== false) {
+                                                    $icon = "bi-facebook";
+                                                    $label = "Lihat Facebook";
+                                                } elseif (strpos($link, 'twitter.com') !== false || strpos($link, 'x.com') !== false) {
+                                                    $icon = "bi-twitter";
+                                                    $label = "Lihat Twitter";
+                                                } elseif (strpos($link, 'tiktok.com') !== false) {
+                                                    $icon = "bi-tiktok";
+                                                    $label = "Lihat TikTok";
+                                                } elseif (strpos($link, 'docs.google.com') !== false) {
+                                                    $icon = "bi-file-earmark-text";
+                                                    $label = "Lihat Google Docs";
+                                                } elseif (strpos($link, 'sheets.google.com') !== false) {
+                                                    $icon = "bi-file-earmark-spreadsheet";
+                                                    $label = "Lihat Google Sheets";
+                                                } elseif (strpos($link, 'slides.google.com') !== false) {
+                                                    $icon = "bi-file-earmark-slides";
+                                                    $label = "Lihat Google Slides";
+                                                }
+                                                ?>
+                                                <a href="<?php echo htmlspecialchars($link); ?>" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                                                    <i class="bi <?php echo $icon; ?> me-1"></i> <?php echo $label; ?>
                                                 </a>
                                             </p>
                                         <?php else: ?>
                                             <p>
-                                                <strong>Link Drive:</strong> 
+                                                <strong>Link:</strong>
                                                 <span class="text-muted fst-italic">Belum ada file yang diunggah</span>
                                             </p>
                                         <?php endif; ?>
+
                                         
-                                        <?php if(!empty($data['catatan'])): ?>
-                                            <p>
-                                                <strong>Catatan Anggota:</strong>
-                                                <span class="d-block mt-2 p-2 bg-light rounded">
-                                                    <?php echo nl2br(htmlspecialchars($data['catatan'])); ?>
-                                                </span>
-                                            </p>
-                                        <?php endif; ?>
+                                     
                                     </div>
                                 </div>
                             </div>

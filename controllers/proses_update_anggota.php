@@ -40,7 +40,7 @@ if(mysqli_query($conn, $query)) {
     exit();
 } else {
     $_SESSION['error'] = "Gagal memperbarui tugas: " . mysqli_error($conn);
-    header("Location: ../dashboard/anggota_dashboard.php");
+    header("Location: ../modules/daftar_tugas_anggota.php");
     exit();
 }
 ?>

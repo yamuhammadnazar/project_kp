@@ -451,12 +451,7 @@ $data = mysqli_fetch_assoc($result);
                                         <input type="date" class="form-control" id="deadline" name="deadline" value="<?php echo $data['deadline']; ?>" required>
                                     </div>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label for="link_drive" class="form-label">Link Drive</label>
-                                    <input type="text" class="form-control" id="link_drive" name="link_drive" value="<?php echo htmlspecialchars($data['link_drive']); ?>" placeholder="Masukkan link Google Drive">
-                                </div>
-                                
+
                                 <div class="d-flex mt-4">
                                     <button type="submit" class="btn btn-primary me-2">
                                         <i class="bi bi-save me-1"></i> Update Tugas
@@ -465,6 +460,7 @@ $data = mysqli_fetch_assoc($result);
                                         <i class="bi bi-x-circle me-1"></i> Batal
                                     </a>
                                 </div>
+                                
                             </form>
                         </div>
                     </div>

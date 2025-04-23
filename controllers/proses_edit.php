@@ -37,10 +37,10 @@ $query = "UPDATE tugas_media SET
 
 if(mysqli_query($conn, $query)) {
     $_SESSION['success'] = "Data berhasil diupdate!";
-    header("Location: ../dashboard/admin_dashboard.php");
+    header("Location: ../modules/daftar_tugas_admin.php");
 } else {
     $_SESSION['error'] = "Gagal mengupdate data!";
-    header("Location: ../modules/edit.php?id=" . $id);
+    header("Location: ../modules/daftar_tugas_admin.php?id=" . $id);
 }
 exit();
 ?>

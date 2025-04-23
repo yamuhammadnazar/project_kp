@@ -432,6 +432,30 @@ if (!$anggota_list_result) {
             font-weight: 600;
             margin-left: 0.5rem;
         }
+
+        .custom-select-wrapper .dropdown-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.custom-select-wrapper .dropdown-item:active,
+.custom-select-wrapper .dropdown-item:focus {
+    background-color: rgba(78, 115, 223, 0.1);
+    color: inherit;
+}
+
+.custom-select-wrapper .form-select {
+    cursor: pointer;
+}
+
+.custom-select-wrapper .form-select.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
     </style>
 </head>
 <body>
@@ -565,27 +589,78 @@ if (!$anggota_list_result) {
                                                 <label for="deskripsi" class="form-label">Deskripsi</label>
                                                 <textarea class="form-control" id="deskripsi" name="deskripsi" rows="3" required></textarea>
                                             </div>
+                                            
                                             <div class="col-md-6">
-                                                <label for="penanggung_jawab" class="form-label">Penanggung Jawab</label>
-                                                <select class="form-select" id="penanggung_jawab" name="penanggung_jawab" required>
-                                                    <option value="">Pilih Penanggung Jawab</option>
-                                                    <?php 
+    <label for="penanggung_jawab" class="form-label">Penanggung Jawab</label>
+    
+    <!-- Hidden select asli untuk form submission -->
+    <select class="d-none" id="penanggung_jawab" name="penanggung_jawab" required>
+        <option value="">Pilih Penanggung Jawab</option>
+        <?php
                                                     mysqli_data_seek($anggota_list_result, 0);
-                                                    while($row = mysqli_fetch_assoc($anggota_list_result)):
-                                                        // Jika tabel tugas ada, tampilkan jumlah tugas
-                                                        if ($table_exists && isset($row['jumlah_tugas'])) {
-                                                            $jumlah_tugas = intval($row['jumlah_tugas']);
-                                                            $task_info = " <span class='task-count'>{$jumlah_tugas} tugas</span>";
-                                                        } else {
-                                                            $task_info = "";
-                                                        }
-                                                    ?>
+                                                    while ($row = mysqli_fetch_assoc($anggota_list_result)):
+                                                        ?>
                                                         <option value="<?php echo htmlspecialchars($row['username']); ?>">
-                                                            <?php echo htmlspecialchars($row['username']) . $task_info; ?>
+                                                            <?php echo htmlspecialchars($row['username']); ?>
                                                         </option>
                                                     <?php endwhile; ?>
                                                 </select>
+                                            
+                                                <!-- Custom select yang lebih baik -->
+                                                <div class="dropdown custom-select-wrapper">
+                                                    <button class="form-select d-flex justify-content-between align-items-center" type="button" id="customSelectBtn"
+                                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <span id="selectedOption">Pilih Penanggung Jawab</span>
+                                                        <i class="bi bi-chevron-down"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu w-100" id="customSelectOptions">
+                                                        <?php
+                                                        mysqli_data_seek($anggota_list_result, 0);
+                                                        while ($row = mysqli_fetch_assoc($anggota_list_result)):
+                                                            // Jika tabel tugas ada, tampilkan jumlah tugas dengan ikon dan warna yang sesuai
+                                                            if ($table_exists && isset($row['jumlah_tugas'])) {
+                                                                $jumlah_tugas = intval($row['jumlah_tugas']);
+
+                                                                // Tentukan warna dan ikon berdasarkan jumlah tugas
+                                                                if ($jumlah_tugas == 0) {
+                                                                    $task_color = "success"; // hijau
+                                                                    $task_icon = "bi-check-circle";
+                                                                } elseif ($jumlah_tugas <= 2) {
+                                                                    $task_color = "success"; // hijau
+                                                                    $task_icon = "bi-clipboard-check";
+                                                                } elseif ($jumlah_tugas <= 5) {
+                                                                    $task_color = "warning"; // kuning
+                                                                    $task_icon = "bi-clipboard";
+                                                                } else {
+                                                                    $task_color = "danger"; // merah
+                                                                    $task_icon = "bi-clipboard-plus";
+                                                                }
+
+                                                                $task_info = "<span class='badge text-bg-{$task_color} ms-2'><i class='bi {$task_icon} me-1'></i>{$jumlah_tugas}</span>";
+                                                            } else {
+                                                                $task_info = "";
+                                                            }
+                                                            ?>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="#"
+                                                                    data-value="<?php echo htmlspecialchars($row['username']); ?>">
+                                                                    <span><?php echo htmlspecialchars($row['username']); ?></span>
+                                                                    <?php echo $task_info; ?>
+                                                                </a>
+                                                            </li>
+                                                        <?php endwhile; ?>
+                                                    </ul>
+                                                </div>
+                                            
+                                                <div class="form-text mt-1">
+                                                    <span class="badge text-bg-success me-1"><i class="bi bi-check-circle me-1"></i>0-2</span> Beban rendah,
+                                                    <span class="badge text-bg-warning me-1"><i class="bi bi-clipboard me-1"></i>3-5</span> Beban sedang,
+                                                    <span class="badge text-bg-danger me-1"><i class="bi bi-clipboard-plus me-1"></i>6+</span> Beban tinggi
+                                                </div>
                                             </div>
+
+
+
                                             <div class="col-md-6">
                                                 <label for="status" class="form-label">Status</label>
                                                 <select class="form-select" id="status" name="status" required>
@@ -644,228 +719,282 @@ if (!$anggota_list_result) {
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Cek apakah ada pesan sukses dari session
-            const successMessage = document.querySelector('.alert-success');
-            if (successMessage) {
-                const message = successMessage.textContent.trim();
-                successMessage.remove(); // Hapus alert default
-                
+    // Cek apakah ada pesan sukses dari session
+    const successMessage = document.querySelector('.alert-success');
+    if (successMessage) {
+        const message = successMessage.textContent.trim();
+        successMessage.remove(); // Hapus alert default
+        
+        Swal.fire({
+            title: 'Berhasil!',
+            text: message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#4e73df'
+        });
+    }
+    
+    document.body.classList.add('loaded');
+    
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebarWrapper = document.getElementById('sidebar-wrapper');
+    const pageContentWrapper = document.getElementById('page-content-wrapper');
+    
+    // Tambahkan overlay untuk mobile
+    const overlay = document.querySelector('.sidebar-overlay');
+    
+    menuToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (window.innerWidth < 768) {
+            // Mobile behavior - show/hide dengan overlay
+            sidebarWrapper.classList.toggle('show');
+            overlay.classList.toggle('show');
+        } else {
+            // Desktop behavior - collapse/expand
+            sidebarWrapper.classList.toggle('collapsed');
+            pageContentWrapper.classList.toggle('expanded');
+        }
+    });
+    
+    // Tutup sidebar saat overlay diklik (untuk mobile)
+    overlay.addEventListener('click', function() {
+        sidebarWrapper.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+    
+    // Responsive behavior
+    function checkWidth() {
+        if (window.innerWidth < 768) {
+            // Reset untuk mobile view
+            sidebarWrapper.classList.remove('collapsed');
+            pageContentWrapper.classList.remove('expanded');
+            
+            // Jika sidebar sedang terbuka di mobile, tampilkan overlay
+            if (sidebarWrapper.classList.contains('show')) {
+                overlay.classList.add('show');
+            }
+        } else {
+            // Reset untuk desktop view
+            overlay.classList.remove('show');
+            sidebarWrapper.classList.remove('show');
+        }
+    }
+    
+    // Initial check
+    checkWidth();
+    
+    // Check on resize dengan throttling untuk performa
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(checkWidth, 100);
+    });
+    
+    // Tab navigation dengan validasi
+    const nextTabButtons = document.querySelectorAll('.next-tab');
+    const prevTabButtons = document.querySelectorAll('.prev-tab');
+    
+    nextTabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Validasi field di tab pertama sebelum pindah ke tab berikutnya
+            const currentTab = document.getElementById('info');
+            const requiredFields = currentTab.querySelectorAll('[required]');
+            let isValid = true;
+            let firstInvalidField = null;
+            let missingFields = [];
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                    if (!firstInvalidField) {
+                        firstInvalidField = field;
+                    }
+                    
+                    // Dapatkan label untuk field ini
+                    const fieldId = field.id;
+                    const label = document.querySelector(`label[for="${fieldId}"]`);
+                    if (label) {
+                        missingFields.push(label.textContent);
+                    }
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (!isValid) {
+                // Tampilkan pesan error dengan SweetAlert2
                 Swal.fire({
-                    title: 'Berhasil!',
-                    text: message,
-                    icon: 'success',
+                    title: 'Form Belum Lengkap',
+                    html: `Silakan lengkapi field berikut:<br><ul><li>${missingFields.join('</li><li>')}</li></ul>`,
+                    icon: 'warning',
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#4e73df'
                 });
+                
+                // Focus ke field pertama yang invalid
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                }
+                
+                return;
             }
             
-            document.body.classList.add('loaded');
+            // Jika valid, pindah ke tab berikutnya
+            const detailsTab = document.getElementById('details-tab');
+            bootstrap.Tab.getOrCreateInstance(detailsTab).show();
+        });
+    });
+    
+    prevTabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const infoTab = document.getElementById('info-tab');
+            bootstrap.Tab.getOrCreateInstance(infoTab).show();
+        });
+    });
+    
+    // Form submission dengan validasi
+    const taskForm = document.getElementById('taskForm');
+    taskForm.addEventListener('submit', function(e) {
+        const allRequiredFields = taskForm.querySelectorAll('[required]');
+        let isValid = true;
+        let firstInvalidField = null;
+        let missingFields = [];
+        
+        allRequiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+                if (!firstInvalidField) {
+                    firstInvalidField = field;
+                }
+                
+                // Dapatkan label untuk field ini
+                const fieldId = field.id;
+                const label = document.querySelector(`label[for="${fieldId}"]`);
+                if (label) {
+                    missingFields.push(label.textContent);
+                }
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        // Validasi tanggal
+        const tanggalMulai = document.getElementById('tanggal_mulai').value;
+        const deadline = document.getElementById('deadline').value;
+        
+        if (tanggalMulai && deadline && new Date(deadline) < new Date(tanggalMulai)) {
+            isValid = false;
+            document.getElementById('deadline').classList.add('is-invalid');
             
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebarWrapper = document.getElementById('sidebar-wrapper');
-            const pageContentWrapper = document.getElementById('page-content-wrapper');
+            Swal.fire({
+                title: 'Tanggal Tidak Valid',
+                text: 'Deadline tidak boleh lebih awal dari tanggal mulai',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4e73df'
+            });
             
-            // Tambahkan overlay untuk mobile
-            const overlay = document.querySelector('.sidebar-overlay');
+            return false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
             
-            menuToggle.addEventListener('click', function(e) {
+            // Tampilkan pesan error dengan SweetAlert2
+            Swal.fire({
+                title: 'Form Belum Lengkap',
+                html: `Silakan lengkapi field berikut:<br><ul><li>${missingFields.join('</li><li>')}</li></ul>`,
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4e73df'
+            });
+            
+            // Pindah ke tab yang berisi field invalid pertama
+            if (firstInvalidField) {
+                const tabId = firstInvalidField.closest('.tab-pane').id;
+                const tabButton = document.querySelector(`[data-bs-target="#${tabId}"]`);
+                bootstrap.Tab.getOrCreateInstance(tabButton).show();
+                
+                // Focus ke field pertama yang invalid
+                setTimeout(() => {
+                    firstInvalidField.focus();
+                }, 500);
+            }
+            
+            return false;
+        }
+        
+        // Jika valid, tampilkan loading indicator
+        Swal.fire({
+            title: 'Menyimpan Tugas',
+            text: 'Mohon tunggu sebentar...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        return true;
+    });
+    
+    // Custom Select untuk Penanggung Jawab
+    const customSelectBtn = document.getElementById('customSelectBtn');
+    const selectedOptionText = document.getElementById('selectedOption');
+    const customSelectOptions = document.getElementById('customSelectOptions');
+    const hiddenSelect = document.getElementById('penanggung_jawab');
+    
+    if (customSelectBtn && selectedOptionText && customSelectOptions && hiddenSelect) {
+        // Ketika opsi dipilih
+        customSelectOptions.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function(e) {
                 e.preventDefault();
+                const value = this.getAttribute('data-value');
+                const text = this.querySelector('span').textContent;
                 
-                if (window.innerWidth < 768) {
-                    // Mobile behavior - show/hide dengan overlay
-                    sidebarWrapper.classList.toggle('show');
-                    overlay.classList.toggle('show');
-                } else {
-                    // Desktop behavior - collapse/expand
-                    sidebarWrapper.classList.toggle('collapsed');
-                    pageContentWrapper.classList.toggle('expanded');
-                }
-            });
-            
-            // Tutup sidebar saat overlay diklik (untuk mobile)
-            overlay.addEventListener('click', function() {
-                sidebarWrapper.classList.remove('show');
-                overlay.classList.remove('show');
-            });
-            
-            // Responsive behavior
-            function checkWidth() {
-                if (window.innerWidth < 768) {
-                    // Reset untuk mobile view
-                    sidebarWrapper.classList.remove('collapsed');
-                    pageContentWrapper.classList.remove('expanded');
-                    
-                    // Jika sidebar sedang terbuka di mobile, tampilkan overlay
-                    if (sidebarWrapper.classList.contains('show')) {
-                        overlay.classList.add('show');
-                    }
-                } else {
-                    // Reset untuk desktop view
-                    overlay.classList.remove('show');
-                    sidebarWrapper.classList.remove('show');
-                }
-            }
-            
-            // Initial check
-            checkWidth();
-            
-            // Check on resize dengan throttling untuk performa
-            let resizeTimer;
-            window.addEventListener('resize', function() {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(checkWidth, 100);
-            });
-            
-            // Tab navigation dengan validasi
-            const nextTabButtons = document.querySelectorAll('.next-tab');
-            const prevTabButtons = document.querySelectorAll('.prev-tab');
-            
-            nextTabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Validasi field di tab pertama sebelum pindah ke tab berikutnya
-                    const currentTab = document.getElementById('info');
-                    const requiredFields = currentTab.querySelectorAll('[required]');
-                    let isValid = true;
-                    let firstInvalidField = null;
-                    let missingFields = [];
-                    
-                    requiredFields.forEach(field => {
-
-                        if (!field.value.trim()) {
-                            isValid = false;
-                            field.classList.add('is-invalid');
-                            if (!firstInvalidField) {
-                                firstInvalidField = field;
-                            }
-                            
-                            // Dapatkan label untuk field ini
-                            const fieldId = field.id;
-                            const label = document.querySelector(`label[for="${fieldId}"]`);
-                            if (label) {
-                                missingFields.push(label.textContent);
-                            }
-                        } else {
-                            field.classList.remove('is-invalid');
-                        }
-                    });
-                    
-                    if (!isValid) {
-                        // Tampilkan pesan error dengan SweetAlert2
-                        Swal.fire({
-                            title: 'Form Belum Lengkap',
-                            html: `Silakan lengkapi field berikut:<br><ul><li>${missingFields.join('</li><li>')}</li></ul>`,
-                            icon: 'warning',
-                            confirmButtonText: 'OK',
-                            confirmButtonColor: '#4e73df'
-                        });
-                        
-                        // Focus ke field pertama yang invalid
-                        if (firstInvalidField) {
-                            firstInvalidField.focus();
-                        }
-                        
-                        return;
-                    }
-                    
-                    // Jika valid, pindah ke tab berikutnya
-                    const detailsTab = document.getElementById('details-tab');
-                    bootstrap.Tab.getOrCreateInstance(detailsTab).show();
-                });
-            });
-            
-            prevTabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const infoTab = document.getElementById('info-tab');
-                    bootstrap.Tab.getOrCreateInstance(infoTab).show();
-                });
-            });
-            
-            // Form submission dengan validasi
-            const taskForm = document.getElementById('taskForm');
-            taskForm.addEventListener('submit', function(e) {
-                const allRequiredFields = taskForm.querySelectorAll('[required]');
-                let isValid = true;
-                let firstInvalidField = null;
-                let missingFields = [];
+                // Update text pada button
+                selectedOptionText.textContent = text;
                 
-                allRequiredFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        isValid = false;
-                        field.classList.add('is-invalid');
-                        if (!firstInvalidField) {
-                            firstInvalidField = field;
-                        }
-                        
-                        // Dapatkan label untuk field ini
-                        const fieldId = field.id;
-                        const label = document.querySelector(`label[for="${fieldId}"]`);
-                        if (label) {
-                            missingFields.push(label.textContent);
-                        }
-                    } else {
-                        field.classList.remove('is-invalid');
-                    }
-                });
+                // Update nilai pada hidden select
+                hiddenSelect.value = value;
                 
-                // Validasi tanggal
-                const tanggalMulai = document.getElementById('tanggal_mulai').value;
-                const deadline = document.getElementById('deadline').value;
+                // Trigger event change pada select asli
+                const event = new Event('change', { bubbles: true });
+                hiddenSelect.dispatchEvent(event);
                 
-                if (tanggalMulai && deadline && new Date(deadline) < new Date(tanggalMulai)) {
-                    isValid = false;
-                    document.getElementById('deadline').classList.add('is-invalid');
-                    
-                    Swal.fire({
-                        title: 'Tanggal Tidak Valid',
-                        text: 'Deadline tidak boleh lebih awal dari tanggal mulai',
-                        icon: 'error',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#4e73df'
-                    });
-                    
-                    return false;
-                }
-                
-                if (!isValid) {
-                    e.preventDefault();
-                    
-                    // Tampilkan pesan error dengan SweetAlert2
-                    Swal.fire({
-                        title: 'Form Belum Lengkap',
-                        html: `Silakan lengkapi field berikut:<br><ul><li>${missingFields.join('</li><li>')}</li></ul>`,
-                        icon: 'warning',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#4e73df'
-                    });
-                    
-                    // Pindah ke tab yang berisi field invalid pertama
-                    if (firstInvalidField) {
-                        const tabId = firstInvalidField.closest('.tab-pane').id;
-                        const tabButton = document.querySelector(`[data-bs-target="#${tabId}"]`);
-                        bootstrap.Tab.getOrCreateInstance(tabButton).show();
-                        
-                        // Focus ke field pertama yang invalid
-                        setTimeout(() => {
-                            firstInvalidField.focus();
-                        }, 500);
-                    }
-                    
-                    return false;
-                }
-                
-                // Jika valid, tampilkan loading indicator
-                Swal.fire({
-                    title: 'Menyimpan Tugas',
-                    text: 'Mohon tunggu sebentar...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                return true;
+                // Tambahkan class is-valid
+                customSelectBtn.classList.remove('is-invalid');
+                customSelectBtn.classList.add('is-valid');
             });
         });
+        
+        // Validasi custom select saat form disubmit
+        if (taskForm) {
+            const originalSubmitHandler = taskForm.onsubmit;
+            
+            taskForm.onsubmit = function(e) {
+                if (!hiddenSelect.value) {
+                    customSelectBtn.classList.add('is-invalid');
+                    
+                    // Jika ada handler asli, panggil itu
+                    if (typeof originalSubmitHandler === 'function') {
+                        return originalSubmitHandler.call(this, e);
+                    }
+                    return false;
+                }
+                
+                // Jika ada handler asli, panggil itu
+                if (typeof originalSubmitHandler === 'function') {
+                    return originalSubmitHandler.call(this, e);
+                }
+                return true;
+            };
+        }
+    }
+});
+
     </script>
 </body>
 </html>
