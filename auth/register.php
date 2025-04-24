@@ -242,7 +242,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             
             #sidebar-wrapper.collapsed .sidebar-heading::before {
-                content: "MA";
+                content: "MS";
                 font-size: 1.2rem;
             }
             
@@ -420,7 +420,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
-            <div class="sidebar-heading">Media Admin</div>
+            <div class="sidebar-heading">Media Staff</div>
             <div class="list-group">
                 <a href="../dashboard/admin_dashboard.php" class="list-group-item">
                     <i class="bi bi-speedometer2"></i>
@@ -443,7 +443,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <span>Tambah Anggota</span>
                 </a>
                 <a href="../auth/logout.php" class="list-group-item">
-                    <i class="bi bi-box-arrow-
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Keluar</span>
                 </a>

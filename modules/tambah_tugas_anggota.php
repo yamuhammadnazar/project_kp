@@ -260,7 +260,7 @@ if (!$anggota_list_result) {
             }
             
             #sidebar-wrapper.collapsed .sidebar-heading::before {
-                content: "MA";
+                content: "MS";
                 font-size: 1.2rem;
             }
             
@@ -462,7 +462,7 @@ if (!$anggota_list_result) {
     <div id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
-            <div class="sidebar-heading">Media Admin</div>
+            <div class="sidebar-heading">Media Staff</div>
             <div class="list-group">
                 <a href="../dashboard/admin_dashboard.php" class="list-group-item">
                     <i class="bi bi-speedometer2"></i>
