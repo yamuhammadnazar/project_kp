@@ -7,6 +7,7 @@ if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "admin") {
 }
 
 $username = $_SESSION["username"];
+$user_id = $_SESSION["user_id"]; // Pastikan user_id tersimpan dalam session
 
 // Filter bulan, tahun, dan status
 $bulan = isset($_GET['bulan']) ? $_GET['bulan'] : '';
@@ -14,8 +15,8 @@ $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 $anggota = isset($_GET['anggota']) ? $_GET['anggota'] : '';
 
-// Base query untuk tugas anggota yang diberikan oleh admin
-$base_query_anggota = "FROM tugas_media WHERE pemberi_tugas = 'admin'";
+// Base query untuk tugas anggota yang diberikan oleh admin yang sedang login
+$base_query_anggota = "FROM tugas_media WHERE pemberi_tugas = 'admin' AND pemberi_tugas_id = $user_id";
 
 // Tambahkan filter jika ada
 if (!empty($bulan) && !empty($tahun)) {
@@ -56,21 +57,23 @@ $stats_query_anggota = "SELECT
 $stats_result_anggota = mysqli_query($conn, $stats_query_anggota);
 $stats_anggota = mysqli_fetch_assoc($stats_result_anggota);
 
-// Menghitung tugas yang melewati deadline (hanya untuk tugas anggota yang diberikan admin)
-$overdue_query = "SELECT COUNT(*) as total_overdue 
-                 FROM tugas_media 
-                 WHERE deadline < CURDATE() 
-                 AND status != 'Selesai' 
-                 AND pemberi_tugas = 'admin'";
+// Menghitung tugas yang melewati deadline (hanya untuk tugas anggota yang diberikan admin yang login)
+$overdue_query = "SELECT COUNT(*) as total_overdue
+                  FROM tugas_media
+                  WHERE deadline < CURDATE()
+                  AND status != 'Selesai'
+                  AND pemberi_tugas = 'admin'
+                  AND pemberi_tugas_id = $user_id";
 $overdue_result = mysqli_query($conn, $overdue_query);
 $overdue = mysqli_fetch_assoc($overdue_result)['total_overdue'];
 
-// Menghitung tugas yang deadline-nya dalam 3 hari ke depan (hanya untuk tugas anggota yang diberikan admin)
-$upcoming_query = "SELECT COUNT(*) as total_upcoming 
-                  FROM tugas_media 
-                  WHERE deadline BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY) 
-                  AND status != 'Selesai' 
-                  AND pemberi_tugas = 'admin'";
+// Menghitung tugas yang deadline-nya dalam 3 hari ke depan (hanya untuk tugas anggota yang diberikan admin yang login)
+$upcoming_query = "SELECT COUNT(*) as total_upcoming
+                   FROM tugas_media
+                   WHERE deadline BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)
+                   AND status != 'Selesai'
+                   AND pemberi_tugas = 'admin'
+                   AND pemberi_tugas_id = $user_id";
 $upcoming_result = mysqli_query($conn, $upcoming_query);
 $upcoming = mysqli_fetch_assoc($upcoming_result)['total_upcoming'];
 
@@ -92,7 +95,7 @@ while ($row = mysqli_fetch_assoc($anggota_result)) {
     $anggota_data[$row['username']] = 0;
 }
 
-// Query untuk mendapatkan jumlah tugas per anggota (hanya tugas yang diberikan admin)
+// Query untuk mendapatkan jumlah tugas per anggota (untuk semua admin)
 $tugas_query = "SELECT penanggung_jawab, COUNT(*) as jumlah_tugas
                 FROM tugas_media
                 WHERE pemberi_tugas = 'admin'
@@ -106,7 +109,7 @@ while ($row = mysqli_fetch_assoc($tugas_result)) {
     }
 }
 
-// Statistik: Platform terbanyak (hanya untuk tugas yang diberikan admin)
+// Statistik: Platform terbanyak (untuk semua admin)
 $platform_query = "SELECT platform, COUNT(*) as jumlah
                   FROM tugas_media
                   WHERE pemberi_tugas = 'admin'
@@ -115,12 +118,13 @@ $platform_query = "SELECT platform, COUNT(*) as jumlah
                   LIMIT 3";
 $platform_result = mysqli_query($conn, $platform_query);
 
-// Statistik: Tugas yang sering overdue (hanya untuk tugas yang diberikan admin)
+// Statistik: Tugas yang sering overdue (hanya untuk tugas yang diberikan admin yang login)
 $overdue_detail_query = "SELECT id, judul, penanggung_jawab, deadline, DATEDIFF(CURDATE(), deadline) as hari_terlambat
                         FROM tugas_media
                         WHERE deadline < CURDATE()
                         AND status != 'Selesai'
                         AND pemberi_tugas = 'admin'
+                        AND pemberi_tugas_id = $user_id
                         ORDER BY hari_terlambat DESC
                         LIMIT 5";
 $overdue_detail_result = mysqli_query($conn, $overdue_detail_query);
@@ -134,16 +138,16 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
     // Set header untuk download file CSV
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=laporan_tugas_admin_' . date('Y-m-d') . '.csv');
-    
+
     // Buat file pointer untuk output
     $output = fopen('php://output', 'w');
-    
+
     // Tambahkan BOM untuk UTF-8
-    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-    
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
     // Header kolom dalam bahasa Indonesia
     fputcsv($output, [
-        'No', 
+        'No',
         'Judul',
         'Platform',
         'Deskripsi',
@@ -154,10 +158,10 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
         'Penanggung Jawab',
         'Catatan'
     ]);
-    
+
     // Reset pointer hasil query
     mysqli_data_seek($result_anggota, 0);
-    
+
     // Tambahkan data
     $no = 1;
     while ($row = mysqli_fetch_assoc($result_anggota)) {
@@ -166,15 +170,15 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
         $interval = $today->diff($deadline_date);
         $days_remaining = $interval->days;
         $deadline_text = isset($row['deadline']) ? date('d/m/Y', strtotime($row['deadline'])) : 'Tidak ada deadline';
-        
+
         if (isset($row['deadline']) && $today > $deadline_date && $row['status'] != 'Selesai') {
             $deadline_text .= " (Terlewat)";
         } elseif (isset($row['deadline']) && $days_remaining <= 3 && $today <= $deadline_date && $row['status'] != 'Selesai') {
             $deadline_text .= " ($days_remaining hari lagi)";
         }
-        
+
         $catatan = !empty($row['catatan_admin']) ? $row['catatan_admin'] : (isset($row['catatan']) ? $row['catatan'] : '');
-        
+
         fputcsv($output, [
             $no++,
             $row['judul'],
@@ -188,18 +192,28 @@ if (isset($_GET['export']) && $_GET['export'] == 'csv') {
             $catatan
         ]);
     }
-    
+
     fclose($output);
     exit;
 }
 
 // Nama bulan dalam bahasa Indonesia
 $nama_bulan = [
-    '1' => 'Januari', '2' => 'Februari', '3' => 'Maret', '4' => 'April',
-    '5' => 'Mei', '6' => 'Juni', '7' => 'Juli', '8' => 'Agustus',
-    '9' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+    '1' => 'Januari',
+    '2' => 'Februari',
+    '3' => 'Maret',
+    '4' => 'April',
+    '5' => 'Mei',
+    '6' => 'Juni',
+    '7' => 'Juli',
+    '8' => 'Agustus',
+    '9' => 'September',
+    '10' => 'Oktober',
+    '11' => 'November',
+    '12' => 'Desember'
 ];
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -1054,7 +1068,7 @@ $nama_bulan = [
                                 </table>
                             </div>
                             <div class="mt-3">
-                                <a href="tugas.php" class="btn btn-primary">Lihat Semua Tugas</a>
+                                <a href="../modules/daftar_tugas_admin.php" class="btn btn-primary">Lihat Semua Tugas</a>
                             </div>
                         </div>
                     </div>
