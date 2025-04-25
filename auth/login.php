@@ -323,7 +323,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 <img src="../assets/images/logo_diskominfo.png" alt="Logo" class="img-fluid">
-                <!-- Ganti path logo sesuai dengan struktur folder Anda -->
             </a>
         </div>
     </nav>
