@@ -16,21 +16,24 @@ $query = "SELECT t.*, u.username as pemberi_username
 $result = mysqli_query($conn, $query);
 
 $username = $_SESSION["username"];
+$user_id = $_SESSION["user_id"];
 
 // Query untuk mendapatkan tugas yang diberikan oleh admin yang login
-$query_tugas_diberikan = "SELECT t.*, u.username as pemberi_username 
-                          FROM tugas_media t
-                          LEFT JOIN users u ON t.pemberi_tugas_id = u.id
-                          WHERE t.pemberi_tugas = 'admin' 
-                          ORDER BY t.deadline ASC";
+$query_tugas_diberikan = "SELECT t.*, u.username as pemberi_username
+                         FROM tugas_media t
+                         LEFT JOIN users u ON t.pemberi_tugas_id = u.id
+                         WHERE t.pemberi_tugas = 'admin' 
+                         AND t.pemberi_tugas_id = $user_id
+                         ORDER BY t.deadline ASC";
 $result_tugas_diberikan = mysqli_query($conn, $query_tugas_diberikan);
 
 // Query untuk mendapatkan tugas yang diterima dari kabid
-$query_tugas_dari_kabid = "SELECT t.*, u.username as pemberi_username 
-                           FROM tugas_media t
-                           LEFT JOIN users u ON t.pemberi_tugas_id = u.id
-                           WHERE t.pemberi_tugas = 'kabid' 
-                           ORDER BY t.deadline ASC";
+$query_tugas_dari_kabid = "SELECT t.*, u.username as pemberi_username
+                          FROM tugas_media t
+                          LEFT JOIN users u ON t.pemberi_tugas_id = u.id
+                          WHERE t.pemberi_tugas = 'kabid'
+                          AND t.penanggung_jawab = '$username'
+                          ORDER BY t.deadline ASC";
 $result_tugas_dari_kabid = mysqli_query($conn, $query_tugas_dari_kabid);
 
 // Hitung jumlah tugas
