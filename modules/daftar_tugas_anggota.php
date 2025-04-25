@@ -319,7 +319,7 @@ body.loaded {
 }
 
 .table td {
-    padding: 0.5rem 0.5rem; /* Reduced padding */
+    padding: 0.8rem 0.8rem; /* Reduced padding */
     vertical-align: middle;
     border-top: 1px solid #e3e6f0;
 }
@@ -539,35 +539,6 @@ body.loaded {
     transition: opacity 300ms, transform 300ms;
 }
 
-/* Highlight untuk baris dengan deadline dekat */
-tr.deadline-warning td {
-    background-color: rgba(255, 193, 7, 0.1);
-}
-
-tr.deadline-danger td {
-    background-color: rgba(220, 53, 69, 0.1);
-}
-
-/* Highlight untuk baris berdasarkan status */
-tr.status-row-belum td {
-    background-color: rgba(198, 40, 40, 0.05);
-}
-
-tr.status-row-proses td {
-    background-color: rgba(239, 108, 0, 0.05);
-}
-
-tr.status-row-kirim td {
-    background-color: #e8eaf6; /* Warna latar belakang untuk baris dengan status kirim */
-}
-
-tr.status-row-selesai td {
-    background-color: rgba(46, 125, 50, 0.05);
-}
-
-tr.status-row-revisi td {
-    background-color: rgba(123, 31, 162, 0.05);
-}
 
 /* Zebra striping yang lebih halus */
 .table-hover tbody tr:nth-of-type(odd) {
