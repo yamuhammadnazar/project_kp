@@ -48,7 +48,7 @@
             border: 3px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
             border-top-color: #4e73df;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 0.8s ease-in-out infinite;
             margin-bottom: 20px;
         }
 
@@ -73,7 +73,7 @@
             stroke: #4e73df;
             stroke-miterlimit: 10;
             fill: none;
-            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+            animation: stroke 0.4s cubic-bezier(0.65, 0, 0.45, 1) forwards;
         }
 
         .checkmark__check {
@@ -82,7 +82,7 @@
             stroke-dashoffset: 48;
             stroke: #4e73df;
             stroke-width: 3;
-            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+            animation: stroke 0.2s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
         }
 
         @keyframes stroke {
@@ -117,10 +117,111 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(46, 89, 217, 0.2);
         }
+
+        /* Modal Popup Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-text {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #4e73df;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 89, 217, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #f8f9fc;
+            color: #5a5c69;
+            border: 1px solid #d1d3e2;
+        }
+
+        .btn-secondary:hover {
+            background-color: #eaecf4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 
 <body>
+    <!-- Modal Popup untuk Konfirmasi -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-container animate__animated animate__fadeIn">
+            <div class="modal-title">Konfirmasi Logout</div>
+            <div class="modal-text">Apakah Anda yakin ingin keluar dari sistem?</div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="confirmLogout">Ya, Keluar</button>
+                <button class="btn btn-secondary" id="cancelLogout">Batal</button>
+            </div>
+        </div>
+    </div>
+
     <div class="logout-container animate__animated animate__fadeIn" id="logoutBox">
         <h2>Logging Out</h2>
         <div class="spinner" id="spinner"></div>
@@ -133,34 +234,76 @@
     </div>
 
     <script>
-        // Animasi logout dengan transisi yang lebih halus
-        setTimeout(function () {
-            const spinner = document.getElementById('spinner');
-            const checkmark = document.getElementById('checkmark');
-            const logoutMessage = document.getElementById('logoutMessage');
-            const loginBtn = document.getElementById('loginBtn');
+        // Tampilkan modal konfirmasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('logoutModal');
+            const logoutBox = document.getElementById('logoutBox');
 
-            // Sembunyikan spinner dan tampilkan checkmark
-            spinner.style.display = 'none';
-            checkmark.style.display = 'block';
+            // Sembunyikan logout box dulu
+            logoutBox.style.display = 'none';
 
-            // Ubah pesan
-            logoutMessage.textContent = 'You have been successfully logged out!';
-            logoutMessage.classList.add('animate__animated', 'animate__fadeIn');
-
-            // Tampilkan tombol login
+            // Tampilkan modal
             setTimeout(function () {
-                loginBtn.classList.add('show');
-            }, 500);
+                modal.classList.add('active');
+            }, 100);
 
-            // Redirect otomatis setelah beberapa detik (opsional)
-            setTimeout(function () {
-                window.location.href = "login.php";
-            }, 5000);
+            // Tombol batal
+            document.getElementById('cancelLogout').addEventListener('click', function () {
+                modal.classList.remove('active');
+                // Kembali ke halaman sebelumnya
+                setTimeout(function () {
+                    window.history.back();
+                }, 300);
+            });
 
-        }, 2000);
+            // Tombol konfirmasi logout
+            document.getElementById('confirmLogout').addEventListener('click', function () {
+                // Sembunyikan modal
+                modal.classList.remove('active');
+
+                // Tampilkan logout box
+                setTimeout(function () {
+                    logoutBox.style.display = 'block';
+
+                    // Animasi logout dengan transisi yang lebih cepat
+                    setTimeout(function () {
+                        const spinner = document.getElementById('spinner');
+                        const checkmark = document.getElementById('checkmark');
+                        const logoutMessage = document.getElementById('logoutMessage');
+                        const loginBtn = document.getElementById('loginBtn');
+
+                        // Sembunyikan spinner dan tampilkan checkmark
+                        spinner.style.display = 'none';
+                        checkmark.style.display = 'block';
+
+                        // Ubah pesan
+                        logoutMessage.textContent = 'You have been successfully logged out!';
+                        logoutMessage.classList.add('animate__animated', 'animate__fadeIn');
+
+                        // Tampilkan tombol login
+                        setTimeout(function () {
+                            loginBtn.classList.add('show');
+                        }, 300);
+
+                        // Redirect otomatis setelah beberapa detik
+                        setTimeout(function () {
+                            window.location.href = "login.php";
+                        }, 3000);
+
+                        // Proses logout di server
+                        fetch('logout_process.php')
+                            .then(response => response.text())
+                            .then(data => console.log(data))
+                            .catch(error => console.error('Error:', error));
+
+                    }, 1200);
+                }, 300);
+            });
+        });
     </script>
 </body>
 
 </html>
-<?php session_destroy(); ?>
+<?php
+// Jangan destroy session di sini, tapi di logout_process.php
+?>
