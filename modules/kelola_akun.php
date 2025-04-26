@@ -1,6 +1,5 @@
 <?php
 include '../auth/koneksi.php';
-
 if (!isset($_SESSION["username"]) || $_SESSION["role"] !== "admin") {
     header("Location: ../auth/login.php");
     exit();
@@ -11,42 +10,42 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
 
 // Pagination setup
 $records_per_page = 5;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $offset = ($page - 1) * $records_per_page;
 
 // Count total records for pagination
 $count_query = "SELECT COUNT(*) as total FROM users WHERE 
-                ((role = 'anggota' AND username LIKE '%$search%') 
+                ((role = 'anggota' AND username LIKE '%$search%')
                 OR (role = 'admin' AND username = '$username'))";
 $count_result = mysqli_query($conn, $count_query);
 $total_records = mysqli_fetch_assoc($count_result)['total'];
 $total_pages = ceil($total_records / $records_per_page);
 
 // Main query with pagination
-$query = "SELECT * FROM users WHERE 
-           ((role = 'anggota' AND username LIKE '%$search%') 
-           OR (role = 'admin' AND username = '$username')) 
-           ORDER BY role ASC 
-           LIMIT $offset, $records_per_page";
+$query = "SELECT * FROM users WHERE
+            ((role = 'anggota' AND username LIKE '%$search%')
+            OR (role = 'admin' AND username = '$username'))
+            ORDER BY role ASC
+            LIMIT $offset, $records_per_page";
 $result = mysqli_query($conn, $query);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Kelola Akun</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
+
     <!-- Animate.css untuk animasi -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    
+
     <!-- Custom CSS -->
     <style>
         :root {
@@ -57,7 +56,7 @@ $result = mysqli_query($conn, $query);
             --secondary-color: #f8f9fc;
             --transition-speed: 0.3s;
         }
-        
+
         body {
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: #f8f9fc;
@@ -66,17 +65,17 @@ $result = mysqli_query($conn, $query);
             transition: opacity 0.5s ease;
             min-height: 100vh;
         }
-        
+
         body.loaded {
             opacity: 1;
         }
-        
+
         #wrapper {
             display: flex;
             position: relative;
             min-height: 100vh;
         }
-        
+
         #sidebar-wrapper {
             min-height: 100vh;
             width: var(--sidebar-width);
@@ -90,7 +89,7 @@ $result = mysqli_query($conn, $query);
             height: 100%;
             overflow-y: auto;
         }
-        
+
         #sidebar-wrapper .sidebar-heading {
             padding: 1.2rem 1rem;
             font-size: 1.2rem;
@@ -104,12 +103,12 @@ $result = mysqli_query($conn, $query);
             align-items: center;
             justify-content: center;
         }
-        
+
         #sidebar-wrapper .list-group {
             width: 100%;
             padding: 1rem 0;
         }
-        
+
         #sidebar-wrapper .list-group-item {
             border: none;
             background: transparent;
@@ -123,7 +122,7 @@ $result = mysqli_query($conn, $query);
             overflow: hidden;
             margin-bottom: 0.25rem;
         }
-        
+
         #sidebar-wrapper .list-group-item:before {
             content: "";
             position: absolute;
@@ -135,21 +134,21 @@ $result = mysqli_query($conn, $query);
             transform: translateX(-4px);
             transition: transform 0.2s;
         }
-        
+
         #sidebar-wrapper .list-group-item:hover {
             background-color: rgba(255, 255, 255, 0.1);
             color: white;
         }
-        
+
         #sidebar-wrapper .list-group-item.active {
             background-color: rgba(255, 255, 255, 0.2);
             color: white;
         }
-        
+
         #sidebar-wrapper .list-group-item.active:before {
             transform: translateX(0);
         }
-        
+
         #sidebar-wrapper .list-group-item i {
             margin-right: 1rem;
             font-size: 1.1rem;
@@ -157,14 +156,14 @@ $result = mysqli_query($conn, $query);
             text-align: center;
             transition: margin var(--transition-speed);
         }
-        
+
         #page-content-wrapper {
             width: 100%;
             margin-left: var(--sidebar-width);
             transition: margin var(--transition-speed) ease;
             flex: 1;
         }
-        
+
         /* Overlay untuk mobile */
         .sidebar-overlay {
             position: fixed;
@@ -177,103 +176,103 @@ $result = mysqli_query($conn, $query);
             display: none;
             transition: all 0.3s;
         }
-        
+
         .sidebar-overlay.show {
             display: block;
         }
-        
+
         /* Mobile sidebar behavior */
         @media (max-width: 767.98px) {
             #sidebar-wrapper {
                 transform: translateX(-100%);
                 width: 250px !important;
             }
-            
+
             #sidebar-wrapper.show {
                 transform: translateX(0);
             }
-            
+
             #page-content-wrapper {
                 margin-left: 0 !important;
                 width: 100% !important;
             }
-            
+
             .topbar {
                 padding-left: 1rem !important;
                 padding-right: 1rem !important;
             }
-            
+
             .content {
                 padding: 1rem !important;
             }
-            
+
             .card-body {
                 padding: 1rem !important;
             }
-            
+
             .table-responsive {
                 font-size: 0.9rem;
             }
-            
+
             .btn {
                 padding: 0.375rem 0.75rem;
                 font-size: 0.875rem;
             }
         }
-        
+
         /* Tablet behavior */
         @media (min-width: 768px) and (max-width: 991.98px) {
             #sidebar-wrapper {
                 width: 200px;
             }
-            
+
             #page-content-wrapper {
                 margin-left: 200px;
             }
-            
+
             #page-content-wrapper.expanded {
                 margin-left: var(--sidebar-collapsed-width);
             }
-            
+
             .content {
                 padding: 1.25rem;
             }
         }
-        
+
         /* Desktop sidebar behavior */
         @media (min-width: 768px) {
             #sidebar-wrapper {
                 transform: translateX(0);
             }
-            
+
             #sidebar-wrapper.collapsed {
                 width: var(--sidebar-collapsed-width);
             }
-            
+
             #sidebar-wrapper.collapsed .sidebar-heading {
                 font-size: 0;
                 padding: 1.2rem 0;
             }
-            
+
             #sidebar-wrapper.collapsed .sidebar-heading::before {
                 content: "MS";
                 font-size: 1.2rem;
             }
-            
+
             #sidebar-wrapper.collapsed .list-group-item span {
                 display: none;
             }
-            
+
             #sidebar-wrapper.collapsed .list-group-item i {
                 margin-right: 0;
                 font-size: 1.2rem;
             }
-            
+
             #page-content-wrapper.expanded {
                 margin-left: var(--sidebar-collapsed-width);
             }
         }
-        
+
         .topbar {
             height: var(--topbar-height);
             background-color: white;
@@ -285,11 +284,11 @@ $result = mysqli_query($conn, $query);
             top: 0;
             z-index: 1020;
         }
-        
+
         .content {
             padding: 1.5rem;
         }
-        
+
         .card {
             border: none;
             border-radius: 10px;
@@ -298,41 +297,42 @@ $result = mysqli_query($conn, $query);
             margin-bottom: 1.5rem;
             overflow: hidden;
         }
-        
+
         .card-header {
             background-color: white;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             font-weight: 600;
             padding: 1rem 1.25rem;
         }
-        
+
         .card-body {
             padding: 1.5rem;
         }
-        
+
         /* Table styling - Ukuran lebih kecil */
         .table {
             width: 100%;
             margin-bottom: 0;
             font-size: 0.95rem;
         }
-        
+
         .table th {
             font-weight: 600;
             color: #4e73df;
             border-top: none;
             background-color: #f8f9fc;
         }
-        
-        .table td, .table th {
+
+        .table td,
+        .table th {
             padding: 0.6rem;
             vertical-align: middle;
         }
-        
+
         .table-hover tbody tr:hover {
             background-color: rgba(78, 115, 223, 0.05);
         }
-        
+
         /* Badge styling */
         .badge {
             font-weight: 600;
@@ -340,60 +340,60 @@ $result = mysqli_query($conn, $query);
             border-radius: 0.25rem;
             font-size: 0.8rem;
         }
-        
+
         .badge-admin {
             background-color: #4e73df;
             color: white;
         }
-        
+
         .badge-anggota {
             background-color: #1cc88a;
             color: white;
         }
-        
+
         /* Button styling - Ukuran lebih kecil */
         .btn-sm {
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
-        
+
         .btn-primary {
             background-color: #4e73df;
             border-color: #4e73df;
         }
-        
+
         .btn-primary:hover {
             background-color: #2e59d9;
             border-color: #2653d4;
         }
-        
+
         .btn-danger {
             background-color: #e74a3b;
             border-color: #e74a3b;
         }
-        
+
         .btn-danger:hover {
             background-color: #d52a1a;
             border-color: #c9221a;
         }
-        
+
         .btn-warning {
             background-color: #f6c23e;
             border-color: #f6c23e;
             color: #fff;
         }
-        
+
         .btn-warning:hover {
             background-color: #f4b619;
             border-color: #f4b30d;
             color: #fff;
         }
-        
+
         /* Search box styling */
         .search-box {
             margin-bottom: 1.5rem;
         }
-        
+
         .search-box .form-control {
             border-radius: 8px;
             border: 1px solid #e3e6f0;
@@ -401,12 +401,12 @@ $result = mysqli_query($conn, $query);
             font-size: 0.9rem;
             transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
-        
+
         .search-box .form-control:focus {
             border-color: #bac8f3;
             box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
         }
-        
+
         /* Alert styling */
         .alert {
             border-radius: 8px;
@@ -414,44 +414,44 @@ $result = mysqli_query($conn, $query);
             padding: 1rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .alert-success {
             background-color: #e8f5e9;
             color: #1e7e34;
         }
-        
+
         .alert-danger {
             background-color: #ffebee;
             color: #d32f2f;
         }
-        
+
         /* Modal styling */
         .modal-content {
             border: none;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .modal-header {
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             background-color: #f8f9fc;
         }
-        
+
         .modal-footer {
             border-top: 1px solid rgba(0, 0, 0, 0.05);
         }
-        
+
         .modal-title {
             font-weight: 600;
             color: #4e73df;
         }
-        
+
         /* Pagination styling */
         .pagination {
             justify-content: center;
             margin-top: 1.5rem;
         }
-        
+
         .pagination .page-item .page-link {
             color: #4e73df;
             border-radius: 0.25rem;
@@ -459,13 +459,13 @@ $result = mysqli_query($conn, $query);
             border: 1px solid #e3e6f0;
             font-size: 0.9rem;
         }
-        
+
         .pagination .page-item.active .page-link {
             background-color: #4e73df;
             border-color: #4e73df;
         }
-        
-        .pagination .page-item.disabled .page-link {
+
+                .pagination .page-item.disabled .page-link {
             color: #858796;
             background-color: #f8f9fc;
         }
@@ -480,6 +480,68 @@ $result = mysqli_query($conn, $query);
                 transform: translateY(-5px);
                 box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             }
+        }
+        
+        /* Modal Konfirmasi Hapus */
+        .delete-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1060;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .delete-modal-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .delete-modal-overlay.active .delete-modal-container {
+            transform: translateY(0);
+        }
+        
+        .delete-modal-icon {
+            font-size: 3rem;
+            color: #e74a3b;
+            margin-bottom: 15px;
+        }
+        
+        .delete-modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .delete-modal-text {
+            margin-bottom: 20px;
+            color: #666;
+        }
+        
+        .delete-modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
     </style>
 </head>
@@ -587,8 +649,8 @@ $result = mysqli_query($conn, $query);
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php 
-                                         if(mysqli_num_rows($result) > 0):
+                                        <?php
+                                          if(mysqli_num_rows($result) > 0):
                                             while($row = mysqli_fetch_assoc($result)):
                                          ?>
                                         <tr>
@@ -606,11 +668,10 @@ $result = mysqli_query($conn, $query);
                                                     </button>
                                                     
                                                     <?php if($row['role'] == 'anggota'): ?>
-                                                        <a href="hapus_akun.php?id=<?php echo $row['id']; ?>"
-                                                            class="btn btn-danger btn-sm"
-                                                           onclick="return confirm('Yakin ingin menghapus akun ini?')">
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                           onclick="openDeleteModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['username']); ?>')">
                                                             <i class="bi bi-trash me-1"></i> Hapus
-                                                        </a>
+                                                        </button>
                                                     <?php endif; ?>
                                                 </div>
                                             </td>
@@ -669,6 +730,7 @@ $result = mysqli_query($conn, $query);
     </div>
     <!-- Overlay for mobile -->
     <div class="sidebar-overlay"></div>
+    
     <!-- Modal Edit Username dan Reset Password -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -709,6 +771,29 @@ $result = mysqli_query($conn, $query);
             </div>
         </div>
     </div>
+    
+    <!-- Modal Konfirmasi Hapus -->
+    <div class="delete-modal-overlay" id="deleteModal">
+        <div class="delete-modal-container animate__animated animate__fadeIn">
+            <div class="delete-modal-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+                        <div class="delete-modal-title">Konfirmasi Hapus Akun</div>
+            <div class="delete-modal-text">
+                Apakah Anda yakin ingin menghapus akun <span id="deleteUsername" class="fw-bold"></span>? 
+                Tindakan ini tidak dapat dibatalkan.
+            </div>
+            <div class="delete-modal-buttons">
+                <a href="#" id="confirmDelete" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i> Ya, Hapus
+                </a>
+                <button type="button" id="cancelDelete" class="btn btn-secondary">
+                    <i class="bi bi-x-circle me-1"></i> Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -788,6 +873,46 @@ $result = mysqli_query($conn, $query);
             document.getElementById('userIdReset').value = id;
             document.getElementById('newUsername').value = username;
             editModal.show();
+        }
+        
+        // Delete confirmation modal functions
+        function openDeleteModal(id, username) {
+            const deleteModal = document.getElementById('deleteModal');
+            const confirmDeleteBtn = document.getElementById('confirmDelete');
+            const deleteUsernameSpan = document.getElementById('deleteUsername');
+            
+            // Set username in confirmation message
+            deleteUsernameSpan.textContent = username;
+            
+            // Set the href for the confirm button
+            confirmDeleteBtn.href = 'hapus_akun.php?id=' + id;
+            
+            // Show the modal
+            deleteModal.classList.add('active');
+            
+            // Add event listener to cancel button
+            document.getElementById('cancelDelete').addEventListener('click', function() {
+                closeDeleteModal();
+            });
+            
+            // Close modal if clicked outside
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) {
+                    closeDeleteModal();
+                }
+            });
+            
+            // Add escape key listener
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && deleteModal.classList.contains('active')) {
+                    closeDeleteModal();
+                }
+            });
+        }
+        
+        function closeDeleteModal() {
+            const deleteModal = document.getElementById('deleteModal');
+            deleteModal.classList.remove('active');
         }
     </script>
 </body>
