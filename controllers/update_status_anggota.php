@@ -506,12 +506,19 @@ $data = mysqli_fetch_assoc($result);
                             <input type="hidden" name="id" value="<?php echo $data['id']; ?>">
                             
                             <!-- Tab Navigation -->
-                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <ul class="nav nav-tabs" id="taskTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">Informasi Tugas</button>
+                                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab"
+                                        data-bs-target="#info" type="button" role="tab" aria-controls="info"
+                                        aria-selected="true">
+                                        <i class="bi bi-info-circle me-1"></i> Informasi Dasar
+                                    </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="jadwal-tab" data-bs-toggle="tab" data-bs-target="#jadwal" type="button" role="tab" aria-controls="jadwal" aria-selected="false">Jadwal & Status</button>
+                                    <button class="nav-link" id="jadwal-tab" data-bs-toggle="tab" data-bs-target="#jadwal"
+                                        type="button" role="tab" aria-controls="jadwal" aria-selected="false">
+                                        <i class="bi bi-calendar-date me-1"></i> Jadwal & Admin
+                                    </button>
                                 </li>
                             </ul>
                             
@@ -546,7 +553,7 @@ $data = mysqli_fetch_assoc($result);
                                             <i class="bi bi-info-circle"></i> Masukkan link Google Drive, Dropbox, atau platform lain yang berisi file tugas Anda.
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-end mt-3">
+                                    <div class="col-12 mt-3">
                                         <button type="button" class="btn btn-primary next-tab" data-next="jadwal-tab">
                                             Lanjut <i class="bi bi-arrow-right"></i>
                                         </button>
@@ -573,12 +580,12 @@ $data = mysqli_fetch_assoc($result);
                                             <input type="date" class="form-control" id="deadline" name="deadline" value="<?php echo isset($data['deadline']) ? $data['deadline'] : ''; ?>" required>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-between mt-3">
-                                        <button type="button" class="btn btn-secondary prev-tab" data-prev="info-tab">
-                                            <i class="bi bi-arrow-left"></i> Kembali
+                                    <div class="col-12 d-flex mt-3">
+                                        <button type="button" class="btn btn-secondary prev-tab me-2" data-prev="info-tab">
+                                            <i class="bi bi-arrow-left me-1"></i> Kembali
                                         </button>
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-save"></i> Update Tugas
+                                            <i class="bi bi-save me-1"></i> Update Tugas
                                         </button>
                                     </div>
                                 </div>
